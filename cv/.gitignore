@@ -1,0 +1,12 @@
+.venv/
+.notebook-venv/
+__pycache__/
+*.py[cod]
+
+# Vistas YOLO derivadas del COCO fuente.
+Datasets/yolo26_working/
+Datasets/FotosPropias/prepared/
+
+# Pesos, logs y gráficos generados. Se conserva la documentación de la carpeta.
+Models-Roboflow/*
+!Models-Roboflow/README.md

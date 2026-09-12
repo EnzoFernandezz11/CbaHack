@@ -1,0 +1,4 @@
+# PyTorch y torchvision se instalan primero mediante setup_training.ps1 para
+# seleccionar correctamente el backend CPU o CUDA.
+ultralytics==8.4.147
+PyYAML==6.0.2

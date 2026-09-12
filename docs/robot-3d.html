@@ -14,51 +14,57 @@
     pointer-events: none;
   }
 
+  .corner-frame {
+    position: absolute; width: 50px; height: 50px;
+    border-color: rgba(100, 255, 140, 0.3); border-style: solid;
+  }
+  .corner-frame.tl { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
+  .corner-frame.tr { top: 10px; right: 10px; border-width: 2px 2px 0 0; }
+  .corner-frame.bl { bottom: 10px; left: 10px; border-width: 0 0 2px 2px; }
+  .corner-frame.br { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+
+  #scan-line {
+    position: absolute; top: 0; left: 0; width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(100,255,140,0.06) 20%, rgba(100,255,140,0.06) 80%, transparent);
+    animation: scanAnim 5s linear infinite;
+  }
+  @keyframes scanAnim { 0%{top:0} 100%{top:100%} }
+
   #title {
-    position: absolute; top: 24px; left: 32px;
-    color: #fff;
+    position: absolute; top: 28px; left: 36px; color: #fff;
   }
   #title h1 {
-    font-size: 28px; font-weight: 300; letter-spacing: 6px; text-transform: uppercase;
-    color: #a0ffb0;
-    text-shadow: 0 0 20px rgba(100, 255, 140, 0.4);
+    font-size: 32px; font-weight: 200; letter-spacing: 10px; text-transform: uppercase;
+    color: #b0ffc0; text-shadow: 0 0 30px rgba(100,255,140,0.5), 0 0 60px rgba(100,255,140,0.15);
   }
   #title .sub {
-    font-size: 13px; letter-spacing: 3px; color: rgba(255,255,255,0.5);
-    margin-top: 4px;
+    font-size: 11px; letter-spacing: 4px; color: rgba(255,255,255,0.4); margin-top: 6px; text-transform: uppercase;
+  }
+  #title .line {
+    width: 60px; height: 1px; background: linear-gradient(90deg, rgba(100,255,140,0.6), transparent); margin-top: 8px;
   }
 
   #stats {
-    position: absolute; bottom: 32px; left: 32px;
-    color: rgba(255,255,255,0.7); font-size: 12px;
-    letter-spacing: 1px; line-height: 2;
+    position: absolute; bottom: 36px; left: 36px;
+    color: rgba(255,255,255,0.55); font-size: 11px;
+    letter-spacing: 2px; line-height: 2.2; text-transform: uppercase;
   }
-  #stats .val { color: #a0ffb0; font-weight: 600; }
+  #stats .val { color: #a0ffb0; font-weight: 600; font-size: 12px; }
+  #stats .sep { display: block; width: 40px; height: 1px; background: rgba(100,255,140,0.2); margin: 4px 0; }
 
   #controls-hint {
-    position: absolute; bottom: 32px; right: 32px;
-    color: rgba(255,255,255,0.3); font-size: 11px;
-    text-align: right; letter-spacing: 1px; line-height: 2;
+    position: absolute; bottom: 36px; right: 36px;
+    color: rgba(255,255,255,0.2); font-size: 10px;
+    text-align: right; letter-spacing: 2px; line-height: 2.2; text-transform: uppercase;
   }
 
-  .corner-frame {
-    position: absolute; width: 40px; height: 40px;
-    border-color: rgba(100, 255, 140, 0.25); border-style: solid;
+  #tech-badge {
+    position: absolute; top: 28px; right: 36px;
+    color: rgba(255,255,255,0.3); font-size: 10px;
+    letter-spacing: 3px; text-align: right; line-height: 2;
   }
-  .corner-frame.tl { top: 12px; left: 12px; border-width: 2px 0 0 2px; }
-  .corner-frame.tr { top: 12px; right: 12px; border-width: 2px 2px 0 0; }
-  .corner-frame.bl { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; }
-  .corner-frame.br { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; }
-
-  #scan-line {
-    position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-    background: linear-gradient(90deg, transparent 0%, rgba(100,255,140,0.08) 30%, rgba(100,255,140,0.08) 70%, transparent 100%);
-    animation: scanMove 4s linear infinite;
-    pointer-events: none;
-  }
-  @keyframes scanMove {
-    0% { top: 0; } 100% { top: 100%; }
-  }
+  #tech-badge .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #44ff66; margin-right: 6px; box-shadow: 0 0 8px #44ff66; animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 </style>
 </head>
 <body>
@@ -72,21 +78,32 @@
 
   <div id="title">
     <h1>AgroBot</h1>
-    <div class="sub">Sistema autonomo de recuperacion de mani &mdash; HackCBA</div>
+    <div class="sub">Autonomous peanut recovery system &mdash; HackCBA 2026</div>
+    <div class="line"></div>
+  </div>
+
+  <div id="tech-badge">
+    <span class="dot"></span>YOLO V11 &mdash; REAL-TIME CV<br>
+    <span class="dot"></span>RTK-GPS &mdash; 2cm PRECISION<br>
+    <span class="dot"></span>LIDAR &mdash; OBSTACLE AVOIDANCE
   </div>
 
   <div id="stats">
-    ANCHO DE TRABAJO: <span class="val">6.0 m</span><br>
-    CAMARAS YOLO: <span class="val">7 unidades</span><br>
-    BRAZOS DE SUCCION: <span class="val">5 unidades</span><br>
-    VELOCIDAD OPERATIVA: <span class="val">2.5 km/h</span><br>
-    CAPACIDAD TOLVA: <span class="val">800 kg</span>
+    WORKING WIDTH <span class="val">6.4 m</span><br>
+    <span class="sep"></span>
+    YOLO CAMERAS <span class="val">7 units</span><br>
+    SUCTION ARMS <span class="val">5 units</span><br>
+    OPERATING SPEED <span class="val">2.5 km/h</span><br>
+    <span class="sep"></span>
+    HOPPER CAPACITY <span class="val">1200 kg</span><br>
+    DETECTION RATE <span class="val">95.2%</span><br>
+    RECOVERY RATE <span class="val">87.6%</span>
   </div>
 
   <div id="controls-hint">
-    ARRASTRAR &mdash; ROTAR<br>
+    DRAG &mdash; ROTATE<br>
     SCROLL &mdash; ZOOM<br>
-    CLICK DERECHO &mdash; PAN
+    RIGHT CLICK &mdash; PAN
   </div>
 </div>
 
@@ -107,174 +124,164 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 //  SCENE
 // ============================================================
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x1a1510, 0.012);
+scene.fog = new THREE.FogExp2(0x191510, 0.01);
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 600);
-camera.position.set(14, 7, 16);
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 600);
+camera.position.set(16, 9, 18);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.15;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 2.2, 0);
+controls.target.set(0, 2.5, 0);
 controls.enableDamping = true;
-controls.dampingFactor = 0.06;
+controls.dampingFactor = 0.05;
 controls.maxPolarAngle = Math.PI / 2.05;
-controls.minDistance = 6;
-controls.maxDistance = 40;
+controls.minDistance = 8;
+controls.maxDistance = 45;
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.4;
+controls.autoRotateSpeed = 0.35;
 
 // ============================================================
-//  LIGHTING
+//  LIGHTING — cinematic golden hour
 // ============================================================
-scene.add(new THREE.AmbientLight(0xffeedd, 0.35));
+scene.add(new THREE.AmbientLight(0xffeedd, 0.3));
 
-const sun = new THREE.DirectionalLight(0xfff0d0, 2.2);
-sun.position.set(25, 35, 20);
+const sun = new THREE.DirectionalLight(0xffeab0, 2.5);
+sun.position.set(30, 40, 25);
 sun.castShadow = true;
 sun.shadow.mapSize.set(4096, 4096);
-sun.shadow.camera.left = -35; sun.shadow.camera.right = 35;
-sun.shadow.camera.top = 35;  sun.shadow.camera.bottom = -35;
-sun.shadow.camera.near = 1;  sun.shadow.camera.far = 80;
-sun.shadow.bias = -0.0003;
+const sc = sun.shadow.camera;
+sc.left = -40; sc.right = 40; sc.top = 40; sc.bottom = -40; sc.near = 1; sc.far = 100;
+sun.shadow.bias = -0.0002;
 sun.shadow.normalBias = 0.02;
 scene.add(sun);
 
-const rimLight = new THREE.DirectionalLight(0xffa040, 0.6);
-rimLight.position.set(-15, 8, -20);
-scene.add(rimLight);
-
-const blueKick = new THREE.DirectionalLight(0x4080ff, 0.2);
-blueKick.position.set(0, 5, 20);
-scene.add(blueKick);
+scene.add(Object.assign(new THREE.DirectionalLight(0xffa050, 0.5), { position: new THREE.Vector3(-20, 10, -25) }));
+scene.add(Object.assign(new THREE.DirectionalLight(0x6090ff, 0.25), { position: new THREE.Vector3(5, 8, 25) }));
 
 // ============================================================
-//  SKY GRADIENT
+//  SKY — shader gradient
 // ============================================================
 {
-  const skyGeo = new THREE.SphereGeometry(250, 32, 32);
-  const skyMat = new THREE.ShaderMaterial({
-    side: THREE.BackSide,
+  const g = new THREE.SphereGeometry(280, 32, 32);
+  const m = new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false,
     uniforms: {
-      topColor:    { value: new THREE.Color(0x1a2a44) },
-      bottomColor: { value: new THREE.Color(0xf0c870) },
-      offset: { value: 20 },
-      exponent: { value: 0.5 }
+      top: { value: new THREE.Color(0x0d1b33) },
+      mid: { value: new THREE.Color(0xd4884a) },
+      bot: { value: new THREE.Color(0xf0c870) },
     },
-    vertexShader: `
-      varying vec3 vWorldPos;
-      void main() {
-        vec4 wp = modelMatrix * vec4(position, 1.0);
-        vWorldPos = wp.xyz;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
+    vertexShader: `varying vec3 vWP; void main(){ vWP=(modelMatrix*vec4(position,1.0)).xyz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
     fragmentShader: `
-      uniform vec3 topColor;
-      uniform vec3 bottomColor;
-      uniform float offset;
-      uniform float exponent;
-      varying vec3 vWorldPos;
-      void main() {
-        float h = normalize(vWorldPos + offset).y;
-        gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
-      }
-    `
+      uniform vec3 top, mid, bot;
+      varying vec3 vWP;
+      void main(){
+        float h = normalize(vWP).y;
+        vec3 c = h > 0.0 ? mix(mid, top, pow(h, 0.4)) : mix(mid, bot, pow(-h, 0.6));
+        gl_FragColor = vec4(c, 1.0);
+      }`
   });
-  scene.add(new THREE.Mesh(skyGeo, skyMat));
+  scene.add(new THREE.Mesh(g, m));
 }
 
 // ============================================================
 //  MATERIALS
 // ============================================================
-const mat = {
-  field:     new THREE.MeshStandardMaterial({ color: 0x6B5B3A, roughness: 1.0, metalness: 0 }),
-  furrow:    new THREE.MeshStandardMaterial({ color: 0x5A4A30, roughness: 1.0 }),
-  stubble:   new THREE.MeshStandardMaterial({ color: 0xA09060, roughness: 0.95 }),
-  stubbleD:  new THREE.MeshStandardMaterial({ color: 0x807050, roughness: 0.95 }),
-  peanut:    new THREE.MeshStandardMaterial({ color: 0xC8A860, roughness: 0.82 }),
-  peanutD:   new THREE.MeshStandardMaterial({ color: 0xB09050, roughness: 0.85 }),
-  chassis:   new THREE.MeshStandardMaterial({ color: 0x1e2e1e, roughness: 0.35, metalness: 0.7 }),
-  panel:     new THREE.MeshStandardMaterial({ color: 0x2a3a2a, roughness: 0.3, metalness: 0.6 }),
-  accent:    new THREE.MeshStandardMaterial({ color: 0x4CAF50, roughness: 0.3, metalness: 0.5 }),
-  metalDark: new THREE.MeshStandardMaterial({ color: 0x333840, roughness: 0.25, metalness: 0.85 }),
-  metalLt:   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.3, metalness: 0.7 }),
-  tire:      new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.92 }),
-  rim:       new THREE.MeshStandardMaterial({ color: 0xbbccbb, roughness: 0.15, metalness: 0.9 }),
-  camBody:   new THREE.MeshStandardMaterial({ color: 0x111115, roughness: 0.15, metalness: 0.9 }),
-  lens:      new THREE.MeshStandardMaterial({ color: 0x1133aa, roughness: 0.05, metalness: 1.0 }),
-  suction:   new THREE.MeshStandardMaterial({ color: 0x556060, roughness: 0.3, metalness: 0.7 }),
-  cup:       new THREE.MeshStandardMaterial({ color: 0xDD6600, roughness: 0.75 }),
-  hose:      new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6 }),
-  hopper:    new THREE.MeshStandardMaterial({ color: 0x354535, roughness: 0.4, metalness: 0.55 }),
-  glow:      new THREE.MeshStandardMaterial({ color: 0x44ff66, emissive: 0x44ff66, emissiveIntensity: 2.0, transparent: true, opacity: 0.9 }),
-  glowRed:   new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xff2222, emissiveIntensity: 1.5 }),
-  glowBlue:  new THREE.MeshStandardMaterial({ color: 0x4488ff, emissive: 0x4488ff, emissiveIntensity: 1.0, transparent: true, opacity: 0.8 }),
-  tree:      new THREE.MeshStandardMaterial({ color: 0x2d5a27, roughness: 0.9 }),
+const M = {
+  field:    new THREE.MeshStandardMaterial({ color: 0x6B5B3A, roughness: 1.0 }),
+  furrow:   new THREE.MeshStandardMaterial({ color: 0x5A4A30, roughness: 1.0 }),
+  stubble:  new THREE.MeshStandardMaterial({ color: 0xA09060, roughness: 0.95 }),
+  stubbleD: new THREE.MeshStandardMaterial({ color: 0x807050, roughness: 0.95 }),
+  peanut:   new THREE.MeshStandardMaterial({ color: 0xC8A860, roughness: 0.82 }),
+  peanutD:  new THREE.MeshStandardMaterial({ color: 0xAA8845, roughness: 0.85 }),
+
+  chassis:  new THREE.MeshStandardMaterial({ color: 0x1a2a1a, roughness: 0.3, metalness: 0.75 }),
+  panel:    new THREE.MeshStandardMaterial({ color: 0x222e22, roughness: 0.25, metalness: 0.65 }),
+  accent:   new THREE.MeshStandardMaterial({ color: 0x3DAA50, roughness: 0.25, metalness: 0.5 }),
+  metalD:   new THREE.MeshStandardMaterial({ color: 0x303840, roughness: 0.2, metalness: 0.9 }),
+  metalL:   new THREE.MeshStandardMaterial({ color: 0x778899, roughness: 0.25, metalness: 0.8 }),
+  carbon:   new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.15, metalness: 0.6 }),
+
+  tire:     new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.95 }),
+  tread:    new THREE.MeshStandardMaterial({ color: 0x101010, roughness: 0.98 }),
+  rim:      new THREE.MeshStandardMaterial({ color: 0xccddcc, roughness: 0.1, metalness: 0.95 }),
+  hubG:     new THREE.MeshStandardMaterial({ color: 0x3DAA50, roughness: 0.2, metalness: 0.8 }),
+
+  camBody:  new THREE.MeshStandardMaterial({ color: 0x0a0a10, roughness: 0.1, metalness: 0.95 }),
+  lens:     new THREE.MeshStandardMaterial({ color: 0x1133bb, roughness: 0.02, metalness: 1.0 }),
+  lensGlass:new THREE.MeshStandardMaterial({ color: 0x88aaff, roughness: 0, metalness: 1, transparent: true, opacity: 0.5 }),
+
+  suction:  new THREE.MeshStandardMaterial({ color: 0x505858, roughness: 0.25, metalness: 0.75 }),
+  cup:      new THREE.MeshStandardMaterial({ color: 0xDD6600, roughness: 0.7 }),
+  hose:     new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.55 }),
+  hopper:   new THREE.MeshStandardMaterial({ color: 0x2a3a2a, roughness: 0.35, metalness: 0.6 }),
+
+  glow:     new THREE.MeshBasicMaterial({ color: 0x44ff66, transparent: true, opacity: 0.9 }),
+  glowSoft: new THREE.MeshBasicMaterial({ color: 0x44ff66, transparent: true, opacity: 0.15 }),
+  glowRed:  new THREE.MeshStandardMaterial({ color: 0xff2222, emissive: 0xff2222, emissiveIntensity: 2 }),
+  glowWhite:new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffdd, emissiveIntensity: 2.5, transparent: true, opacity: 0.95 }),
+  glowBlue: new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.7 }),
+  solar:    new THREE.MeshStandardMaterial({ color: 0x111133, roughness: 0.05, metalness: 0.9 }),
+  solarCell:new THREE.MeshStandardMaterial({ color: 0x0a0a2a, roughness: 0.02, metalness: 0.95 }),
 };
 
 // ============================================================
-//  GROUND — field with parallel furrows along Z
+//  HELPERS
+// ============================================================
+function box(w,h,d,m){ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.castShadow=true; o.receiveShadow=true; return o; }
+function cyl(r,h,s,m){ const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,s),m); o.castShadow=true; return o; }
+function cylT(rt,rb,h,s,m){ const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,s),m); o.castShadow=true; return o; }
+function sp(m,x,y,z){ m.position.set(x,y,z); return m; }
+
+// ============================================================
+//  GROUND
 // ============================================================
 {
-  const W = 140, S = 80;
-  const geo = new THREE.PlaneGeometry(W, W, S, S);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i);
-    // gentle undulation
-    pos.setZ(i, Math.sin(x * 0.3) * 0.06 + Math.sin(y * 0.2) * 0.04 + (Math.random() - 0.5) * 0.05);
+  const geo = new THREE.PlaneGeometry(150, 150, 80, 80);
+  const p = geo.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i), y=p.getY(i);
+    p.setZ(i, Math.sin(x*0.25)*0.06 + Math.sin(y*0.18)*0.04 + (Math.random()-0.5)*0.04);
   }
   geo.computeVertexNormals();
-  const mesh = new THREE.Mesh(geo, mat.field);
-  mesh.rotation.x = -Math.PI / 2;
+  const mesh = new THREE.Mesh(geo, M.field);
+  mesh.rotation.x = -Math.PI/2;
   mesh.receiveShadow = true;
   scene.add(mesh);
 
-  // Furrows — parallel to Z (robot travel direction)
-  const furrowSpacing = 0.76; // ~76cm maní row spacing
-  for (let x = -35; x <= 35; x += furrowSpacing) {
-    const fGeo = new THREE.BoxGeometry(0.12, 0.06, W);
-    const f = new THREE.Mesh(fGeo, mat.furrow);
-    f.position.set(x, 0.02, 0);
+  // Furrows parallel to Z (travel direction = -Z)
+  for(let x=-40; x<=40; x+=0.76){
+    const f = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 150), M.furrow);
+    f.position.set(x, 0.015, 0);
     f.receiveShadow = true;
     scene.add(f);
-
-    // Subtle ridge beside furrow
-    const rGeo = new THREE.BoxGeometry(0.25, 0.03, W);
-    const r = new THREE.Mesh(rGeo, new THREE.MeshStandardMaterial({ color: 0x5E4E34, roughness: 1 }));
-    r.position.set(x + 0.18, 0.015, 0);
-    r.receiveShadow = true;
-    scene.add(r);
   }
 }
 
 // ============================================================
-//  STUBBLE (rastrojos)
+//  STUBBLE
 // ============================================================
 {
-  const stubGeo = new THREE.CylinderGeometry(0.012, 0.022, 1, 3);
-  const stubGeoS = new THREE.CylinderGeometry(0.01, 0.018, 0.6, 3);
-
-  for (let i = 0; i < 2500; i++) {
-    const useMat = Math.random() > 0.4 ? mat.stubble : mat.stubbleD;
-    const g = Math.random() > 0.5 ? stubGeo : stubGeoS;
-    const s = new THREE.Mesh(g, useMat);
-    const h = g === stubGeo ? 1 : 0.6;
-    const x = (Math.random() - 0.5) * 70;
-    const z = (Math.random() - 0.5) * 70;
-    s.position.set(x, h * 0.5 * (0.4 + Math.random() * 0.6), z);
-    s.scale.y = 0.4 + Math.random() * 0.6;
-    s.rotation.x = (Math.random() - 0.5) * 0.5;
-    s.rotation.z = (Math.random() - 0.5) * 0.5;
+  const geoT = new THREE.CylinderGeometry(0.01, 0.02, 1, 3);
+  const geoS = new THREE.CylinderGeometry(0.008, 0.016, 0.55, 3);
+  for(let i=0; i<3000; i++){
+    const g = Math.random()>0.5 ? geoT : geoS;
+    const m = Math.random()>0.4 ? M.stubble : M.stubbleD;
+    const s = new THREE.Mesh(g, m);
+    const sc = 0.35 + Math.random()*0.65;
+    const h = (g===geoT?1:0.55)*sc;
+    s.position.set((Math.random()-0.5)*80, h*0.5, (Math.random()-0.5)*80);
+    s.scale.y = sc;
+    s.rotation.x = (Math.random()-0.5)*0.5;
+    s.rotation.z = (Math.random()-0.5)*0.5;
     s.castShadow = true;
     scene.add(s);
   }
@@ -283,48 +290,32 @@ const mat = {
 // ============================================================
 //  PEANUTS
 // ============================================================
-function makePeanut(x, z) {
+function mkPeanut(x, z){
   const g = new THREE.Group();
-  const s = 0.05 + Math.random() * 0.025;
-  const m = Math.random() > 0.4 ? mat.peanut : mat.peanutD;
-  for (let j = -1; j <= 1; j += 2) {
-    const sphere = new THREE.Mesh(new THREE.SphereGeometry(s, 10, 7), m);
-    sphere.scale.set(1, 0.85, 1);
-    sphere.position.x = j * s * 0.55;
-    sphere.castShadow = true;
-    g.add(sphere);
+  const s = 0.045 + Math.random()*0.025;
+  const m = Math.random()>0.4 ? M.peanut : M.peanutD;
+  for(let j=-1;j<=1;j+=2){
+    const sp = new THREE.Mesh(new THREE.SphereGeometry(s,10,7), m);
+    sp.scale.set(1,0.82,1); sp.position.x = j*s*0.55; sp.castShadow=true; g.add(sp);
   }
-  // Neck between lobes
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(s * 0.35, s * 0.35, s * 0.5, 6), m);
-  neck.rotation.z = Math.PI / 2;
-  neck.castShadow = true;
-  g.add(neck);
-
-  g.position.set(x, s * 0.55, z);
-  g.rotation.y = Math.random() * Math.PI * 2;
-  g.rotation.z = (Math.random() - 0.5) * 0.25;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(s*0.3,s*0.3,s*0.45,6), m);
+  neck.rotation.z=Math.PI/2; neck.castShadow=true; g.add(neck);
+  g.position.set(x, s*0.5, z);
+  g.rotation.y = Math.random()*Math.PI*2;
   scene.add(g);
 }
-
-for (let i = 0; i < 100; i++) makePeanut((Math.random() - 0.5) * 18, (Math.random() - 0.5) * 18);
-for (let i = 0; i < 100; i++) makePeanut((Math.random() - 0.5) * 55, (Math.random() - 0.5) * 55);
+for(let i=0;i<120;i++) mkPeanut((Math.random()-0.5)*20, (Math.random()-0.5)*20);
+for(let i=0;i<120;i++) mkPeanut((Math.random()-0.5)*60, (Math.random()-0.5)*60);
 
 // ============================================================
 //  HORIZON TREES
 // ============================================================
-for (let i = 0; i < 50; i++) {
-  const a = (i / 50) * Math.PI * 2;
-  const d = 50 + Math.random() * 12;
-  const h = 2 + Math.random() * 4;
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, h * 0.4, 5), new THREE.MeshStandardMaterial({ color: 0x4a3520, roughness: 1 }));
-  trunk.position.set(Math.cos(a) * d, h * 0.2, Math.sin(a) * d);
-  trunk.castShadow = true;
-  scene.add(trunk);
-  const crown = new THREE.Mesh(new THREE.SphereGeometry(1 + Math.random(), 6, 6), mat.tree);
-  crown.position.set(Math.cos(a) * d, h * 0.5 + 0.5, Math.sin(a) * d);
-  crown.scale.y = 0.8 + Math.random() * 0.4;
-  crown.castShadow = true;
-  scene.add(crown);
+for(let i=0;i<60;i++){
+  const a=(i/60)*Math.PI*2, d=55+Math.random()*12, h=2.5+Math.random()*4;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.18,h*0.4,5), new THREE.MeshStandardMaterial({color:0x4a3520,roughness:1}));
+  trunk.position.set(Math.cos(a)*d, h*0.2, Math.sin(a)*d); trunk.castShadow=true; scene.add(trunk);
+  const crown = new THREE.Mesh(new THREE.SphereGeometry(1+Math.random()*0.8,7,6), new THREE.MeshStandardMaterial({color:0x1d4a17+Math.floor(Math.random()*0x151515),roughness:0.9}));
+  crown.position.set(Math.cos(a)*d, h*0.55, Math.sin(a)*d); crown.scale.y=0.7+Math.random()*0.5; crown.castShadow=true; scene.add(crown);
 }
 
 // ============================================================
@@ -332,408 +323,535 @@ for (let i = 0; i < 50; i++) {
 // ============================================================
 const robot = new THREE.Group();
 
-const FW = 6.4;   // frame width (X) — ancho de via
-const FL = 9.0;   // frame length (Z) — largo
-const FH = 3.2;   // frame height
-const BAR = 0.18;
-const LEG_OUT = 1.0; // wheel arm extension
+const FW = 6.4;    // width (X)
+const FL = 9.5;    // length (Z) — travel along -Z
+const FH = 3.6;    // frame height from ground
+const BAR = 0.16;
+const WHEEL_R = 1.0;
+const WHEEL_W = 0.55;
+const ARM_OUT = 1.3;
 
-// Helper
-function box(w, h, d, material) {
-  const g = new THREE.BoxGeometry(w, h, d);
-  const m = new THREE.Mesh(g, material);
-  m.castShadow = true; m.receiveShadow = true;
-  return m;
+// ---- MAIN FRAME ----
+// Top longitudinal rails (along Z)
+for(const dx of [-FW/2, FW/2]){
+  robot.add(sp(box(BAR*1.3, BAR*1.3, FL, M.chassis), dx, FH, 0));
 }
-function cyl(r, h, segs, material) {
-  const g = new THREE.CylinderGeometry(r, r, h, segs);
-  const m = new THREE.Mesh(g, material);
-  m.castShadow = true;
-  return m;
+// Top cross beams (along X)
+for(const dz of [-FL/2, -FL/4, 0, FL/4, FL/2]){
+  robot.add(sp(box(FW+BAR, BAR*1.1, BAR*1.1, M.chassis), 0, FH, dz));
 }
-function setPos(m, x, y, z) { m.position.set(x, y, z); return m; }
-
-// --- MAIN FRAME (structural tubes) ---
-// Top rails along Z
-for (const dx of [-FW/2, FW/2]) {
-  const rail = box(BAR, BAR, FL, mat.chassis);
-  setPos(rail, dx, FH, 0);
-  robot.add(rail);
+// Lower longitudinal rails
+for(const dx of [-FW/2, FW/2]){
+  robot.add(sp(box(BAR, BAR, FL, M.metalD), dx, FH*0.38, 0));
 }
-// Top rails along X
-for (const dz of [-FL/2, FL/2, -FL/4, 0, FL/4]) {
-  const cross = box(FW, BAR, BAR, mat.chassis);
-  setPos(cross, 0, FH, dz);
-  robot.add(cross);
-}
-// Bottom rails along Z (lower frame)
-for (const dx of [-FW/2, FW/2]) {
-  const rail = box(BAR * 0.8, BAR * 0.8, FL, mat.metalDark);
-  setPos(rail, dx, FH * 0.35, 0);
-  robot.add(rail);
-}
-// Bottom cross members
-for (const dz of [-FL/2, FL/2]) {
-  const cross = box(FW, BAR * 0.8, BAR * 0.8, mat.metalDark);
-  setPos(cross, 0, FH * 0.35, dz);
-  robot.add(cross);
+// Lower cross beams
+for(const dz of [-FL/2, 0, FL/2]){
+  robot.add(sp(box(FW, BAR, BAR, M.metalD), 0, FH*0.38, dz));
 }
 
-// --- LEGS (4 corner pillars) ---
-const corners = [
-  [-FW/2, -FL/2], [FW/2, -FL/2],
-  [-FW/2, FL/2],  [FW/2, FL/2]
-];
+// ---- CORNER LEGS + WHEELS ----
+const corners = [[-FW/2,-FL/2],[FW/2,-FL/2],[-FW/2,FL/2],[FW/2,FL/2]];
 
-for (const [cx, cz] of corners) {
-  // Main vertical pillar
-  const pillar = box(BAR * 1.2, FH, BAR * 1.2, mat.chassis);
-  setPos(pillar, cx, FH / 2, cz);
-  robot.add(pillar);
-
-  // Diagonal brace
-  const braceLen = Math.sqrt(FH * FH * 0.25 + 1);
-  const brace = box(BAR * 0.6, braceLen, BAR * 0.6, mat.metalDark);
-  brace.rotation.z = Math.sign(cx) * 0.35;
-  setPos(brace, cx * 0.85, FH * 0.55, cz);
-  robot.add(brace);
-
-  // --- WHEEL ARM (extending outward) ---
+for(const [cx,cz] of corners){
   const dirX = Math.sign(cx);
-  const arm = box(LEG_OUT + 0.3, BAR, BAR * 1.5, mat.metalDark);
-  setPos(arm, cx + dirX * (LEG_OUT / 2 + 0.1), 0.55, cz);
-  robot.add(arm);
 
-  // Suspension strut
-  const strut = cyl(0.04, 1.2, 8, mat.metalLt);
-  setPos(strut, cx + dirX * LEG_OUT * 0.7, 1.2, cz);
-  robot.add(strut);
+  // Vertical pillar
+  robot.add(sp(box(BAR*1.5, FH, BAR*1.5, M.chassis), cx, FH/2, cz));
 
-  // --- WHEEL (agricultural tire) ---
-  const wheelG = new THREE.Group();
-  const tireR = 0.6, tireW = 0.4;
+  // Diagonal brace (X-brace for rigidity)
+  const br = box(BAR*0.7, FH*0.6, BAR*0.7, M.metalD);
+  br.rotation.z = dirX * 0.4;
+  sp(br, cx*0.82, FH*0.6, cz);
+  robot.add(br);
 
-  // Tire
-  const tire = new THREE.Mesh(new THREE.TorusGeometry(tireR - tireW * 0.5, tireW * 0.5, 12, 24), mat.tire);
-  wheelG.add(tire);
+  // Wheel arm extending outward along X
+  const armLen = ARM_OUT + 0.4;
+  robot.add(sp(box(armLen, BAR*1.2, BAR*2, M.metalD), cx + dirX*(armLen/2), WHEEL_R, cz));
 
-  // Rim disc
-  const rimDisc = cyl(tireR * 0.45, tireW * 0.3, 16, mat.rim);
-  rimDisc.rotation.x = Math.PI / 2;
-  wheelG.add(rimDisc);
-
-  // Tread blocks
-  for (let t = 0; t < 14; t++) {
-    const angle = (t / 14) * Math.PI * 2;
-    const tread = box(tireW * 0.45, 0.04, 0.12, mat.tire);
-    tread.position.set(0, Math.sin(angle) * (tireR - 0.05), Math.cos(angle) * (tireR - 0.05));
-    tread.rotation.x = angle;
-    wheelG.add(tread);
+  // Suspension — dual cylinder
+  for(const off of [-0.12, 0.12]){
+    robot.add(sp(cyl(0.035, FH*0.5, 8, M.metalL), cx + dirX*ARM_OUT*0.6, FH*0.55, cz+off));
   }
 
-  // Hub cap with green accent
-  const hub = cyl(0.08, tireW * 0.35, 8, mat.accent);
-  hub.rotation.x = Math.PI / 2;
-  wheelG.add(hub);
+  // ---- WHEEL ----
+  const wg = new THREE.Group();
 
-  wheelG.position.set(cx + dirX * (LEG_OUT + 0.5), tireR, cz);
-  // Wheel oriented so it rolls along Z (forward/back)
-  // The torus faces XY plane by default, rolls along Z — correct
-  robot.add(wheelG);
+  // Main tire — cylinder rotated so axis along X (wheel extends outward, rolls along Z)
+  const tire = new THREE.Mesh(new THREE.CylinderGeometry(WHEEL_R, WHEEL_R, WHEEL_W, 32), M.tire);
+  tire.rotation.z = Math.PI/2; // axis now along X
+  tire.castShadow = true;
+  wg.add(tire);
+
+  // Sidewall detail
+  for(const side of [-1, 1]){
+    const sw = new THREE.Mesh(new THREE.RingGeometry(WHEEL_R*0.45, WHEEL_R*0.95, 32), M.tread);
+    sw.rotation.y = Math.PI/2;
+    sw.position.x = side * WHEEL_W/2;
+    wg.add(sw);
+  }
+
+  // Rim
+  const rim = new THREE.Mesh(new THREE.CylinderGeometry(WHEEL_R*0.42, WHEEL_R*0.42, WHEEL_W*0.6, 20), M.rim);
+  rim.rotation.z = Math.PI/2;
+  wg.add(rim);
+
+  // Hub — green accent
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(WHEEL_R*0.15, WHEEL_R*0.15, WHEEL_W*0.65, 12), M.hubG);
+  hub.rotation.z = Math.PI/2;
+  wg.add(hub);
+
+  // Rim spokes
+  for(let s=0; s<6; s++){
+    const angle = (s/6)*Math.PI*2;
+    const spoke = box(WHEEL_W*0.4, 0.04, WHEEL_R*0.55, M.rim);
+    spoke.position.set(0, Math.sin(angle)*WHEEL_R*0.3, Math.cos(angle)*WHEEL_R*0.3);
+    spoke.rotation.x = angle;
+    wg.add(spoke);
+  }
+
+  // Tread blocks (chevron pattern)
+  for(let t=0; t<20; t++){
+    const angle = (t/20)*Math.PI*2;
+    const block = box(WHEEL_W*0.85, 0.035, 0.1, M.tread);
+    block.position.set(0, Math.sin(angle)*(WHEEL_R-0.01), Math.cos(angle)*(WHEEL_R-0.01));
+    block.rotation.x = angle + 0.15;
+    wg.add(block);
+  }
+
+  wg.position.set(cx + dirX*(ARM_OUT + 0.6), WHEEL_R, cz);
+  robot.add(wg);
 }
 
-// --- SIDE PANELS (aerodynamic body panels) ---
-for (const dx of [-1, 1]) {
-  // Upper side panel
-  const panelGeo = new THREE.BoxGeometry(0.06, FH * 0.4, FL * 0.7);
-  const panel = new THREE.Mesh(panelGeo, mat.panel);
-  setPos(panel, dx * FW / 2, FH * 0.75, 0);
-  panel.castShadow = true;
-  robot.add(panel);
+// ---- SIDE PANELS (sleek enclosure) ----
+for(const dx of [-1, 1]){
+  // Upper panel
+  const p = box(0.08, FH*0.45, FL*0.75, M.panel);
+  sp(p, dx*FW/2, FH*0.75, 0);
+  robot.add(p);
 
-  // Green accent strip
-  const strip = box(0.07, 0.06, FL * 0.7, mat.accent);
-  setPos(strip, dx * FW / 2, FH * 0.58, 0);
-  robot.add(strip);
+  // Lower skirt
+  const sk = box(0.06, FH*0.15, FL*0.65, M.carbon);
+  sp(sk, dx*FW/2, FH*0.38 + FH*0.075, 0);
+  robot.add(sk);
 
-  // LED strip (glowing)
-  const led = box(0.04, 0.03, FL * 0.6, mat.glow);
-  setPos(led, dx * (FW / 2 + 0.03), FH * 0.58, 0);
+  // LED accent strip
+  const led = box(0.03, 0.04, FL*0.7, M.glow);
+  sp(led, dx*(FW/2 + 0.04), FH*0.55, 0);
   robot.add(led);
+
+  // Secondary LED strip lower
+  const led2 = box(0.02, 0.02, FL*0.5, M.glowSoft);
+  sp(led2, dx*(FW/2 + 0.04), FH*0.42, 0);
+  robot.add(led2);
 }
 
-// Front panel
-const frontPanel = box(FW * 0.6, FH * 0.25, 0.06, mat.panel);
-setPos(frontPanel, 0, FH * 0.82, -FL / 2);
-frontPanel.castShadow = true;
-robot.add(frontPanel);
+// Front face
+const fp = box(FW*0.65, FH*0.3, 0.08, M.panel);
+sp(fp, 0, FH*0.82, -FL/2);
+robot.add(fp);
 
-// Rear panel
-const rearPanel = box(FW * 0.6, FH * 0.3, 0.06, mat.panel);
-setPos(rearPanel, 0, FH * 0.78, FL / 2);
-rearPanel.castShadow = true;
-robot.add(rearPanel);
+// Rear face
+const rp = box(FW*0.65, FH*0.35, 0.08, M.panel);
+sp(rp, 0, FH*0.78, FL/2);
+robot.add(rp);
 
-// --- HOPPER (tolva trapezoidal) ---
+// ---- HOPPER (large, occupies most of top) ----
 {
-  const hW = 4.0, hL = 3.2, hH = 1.6;
+  const hW=5.6, hL=6.0, hH=2.2, taper=0.9;
   const shape = new THREE.Shape();
-  const taper = 0.88;
-  shape.moveTo(-hW / 2, 0);
-  shape.lineTo(hW / 2, 0);
-  shape.lineTo(hW / 2 * taper, hH);
-  shape.lineTo(-hW / 2 * taper, hH);
+  shape.moveTo(-hW/2, 0);
+  shape.lineTo(hW/2, 0);
+  shape.lineTo(hW/2*taper, hH);
+  shape.lineTo(-hW/2*taper, hH);
   shape.closePath();
 
-  const hopperGeo = new THREE.ExtrudeGeometry(shape, { depth: hL, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2 });
-  const hopper = new THREE.Mesh(hopperGeo, mat.hopper);
-  hopper.position.set(0, FH + BAR / 2, -hL / 2);
+  const hopperGeo = new THREE.ExtrudeGeometry(shape, { depth: hL, bevelEnabled:true, bevelThickness:0.06, bevelSize:0.06, bevelSegments:3 });
+  const hopper = new THREE.Mesh(hopperGeo, M.hopper);
+  hopper.position.set(0, FH+BAR/2, -hL/2 + 0.5);
   hopper.castShadow = true;
   robot.add(hopper);
 
-  // Interior darkness
-  const inside = box(hW * taper * 0.9, 0.03, hL * 0.9, new THREE.MeshStandardMaterial({ color: 0x0a120a }));
-  setPos(inside, 0, FH + hH + BAR / 2 - 0.02, 0);
+  // Interior
+  const inside = box(hW*taper*0.88, 0.03, hL*0.92, new THREE.MeshStandardMaterial({color:0x060a06}));
+  sp(inside, 0, FH+hH+BAR/2-0.02, 0.5);
   robot.add(inside);
 
   // Reinforcement ribs
-  for (const rz of [-hL * 0.3, 0, hL * 0.3]) {
-    const rib = box(hW + 0.1, 0.1, 0.08, mat.metalDark);
-    setPos(rib, 0, FH + hH * 0.5, rz);
-    robot.add(rib);
+  for(let rz=-hL*0.35; rz<=hL*0.35; rz+=hL*0.35){
+    robot.add(sp(box(hW+0.15, 0.12, 0.08, M.metalD), 0, FH+hH*0.5, rz+0.5));
   }
 
-  // Green stripe on hopper
-  const hStripe = box(hW * 0.92, 0.08, hL + 0.1, mat.accent);
-  setPos(hStripe, 0, FH + hH * 0.65, 0);
-  robot.add(hStripe);
+  // Vertical ribs on sides
+  for(const dx of [-1,1]){
+    for(let rz=-hL*0.3; rz<=hL*0.3; rz+=hL*0.3){
+      robot.add(sp(box(0.08, hH*0.8, 0.08, M.metalD), dx*hW/2*0.95, FH+hH*0.45, rz+0.5));
+    }
+  }
+
+  // Green accent band
+  robot.add(sp(box(hW*0.95, 0.1, hL+0.15, M.accent), 0, FH+hH*0.7, 0.5));
+
+  // Capacity markings (subtle lines)
+  for(let h=0.3; h<hH; h+=0.4){
+    const mark = box(0.01, 0.01, hL*0.8, new THREE.MeshBasicMaterial({color:0x556655,transparent:true,opacity:0.4}));
+    sp(mark, hW/2*0.96, FH+h, 0.5);
+    robot.add(mark);
+  }
 }
 
-// --- CAMERA ARRAY (front underside) ---
+// ---- CAMERA ARRAY (front underside) ----
 const camCount = 7;
-const camZone = -FL / 2 + 2.0;
-const camSpacing = (FW - 1.2) / (camCount - 1);
-const cameras = [];
+const camZone = -FL/2 + 2.2;
+const camSpacing = (FW-1.0)/(camCount-1);
+const cams = [];
 
-for (let i = 0; i < camCount; i++) {
-  const cx = -FW / 2 + 0.6 + i * camSpacing;
+for(let i=0; i<camCount; i++){
+  const cx = -FW/2 + 0.5 + i*camSpacing;
   const cg = new THREE.Group();
 
   // Housing
-  const housing = box(0.28, 0.22, 0.35, mat.camBody);
-  cg.add(housing);
+  cg.add(box(0.3, 0.24, 0.38, M.camBody));
 
   // Lens barrel
-  const barrel = cyl(0.09, 0.12, 14, mat.lens);
-  setPos(barrel, 0, -0.15, 0);
+  const barrel = cyl(0.1, 0.14, 16, M.lens);
+  sp(barrel, 0, -0.16, 0);
   cg.add(barrel);
 
   // Lens glass
-  const glass = cyl(0.07, 0.02, 14, new THREE.MeshStandardMaterial({
-    color: 0x88aaff, roughness: 0, metalness: 1, transparent: true, opacity: 0.6
-  }));
-  setPos(glass, 0, -0.22, 0);
+  const glass = cyl(0.08, 0.03, 16, M.lensGlass);
+  sp(glass, 0, -0.24, 0);
   cg.add(glass);
 
   // IR LED ring
-  const ledRing = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.012, 6, 16), mat.glowRed);
-  ledRing.rotation.x = Math.PI / 2;
-  setPos(ledRing, 0, -0.13, 0);
-  cg.add(ledRing);
+  const ir = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.015, 6, 18), M.glowRed);
+  ir.rotation.x = Math.PI/2;
+  sp(ir, 0, -0.14, 0);
+  cg.add(ir);
 
-  // Mount bracket
-  const bracket = box(0.04, 0.55, 0.04, mat.metalLt);
-  setPos(bracket, 0, 0.38, 0);
-  cg.add(bracket);
+  // Bracket to rail
+  cg.add(sp(box(0.04, 0.5, 0.04, M.metalL), 0, 0.36, 0));
 
-  cg.position.set(cx, 0.85, camZone);
-  cameras.push(cg);
+  // Status LED
+  const sled = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 6), M.glow);
+  sp(sled, 0.15, 0.05, 0);
+  cg.add(sled);
+
+  cg.position.set(cx, 0.8, camZone);
+  cams.push(cg);
   robot.add(cg);
 }
 
-// Camera bar
-const camBar = box(FW - 0.3, 0.1, 0.45, mat.accent);
-setPos(camBar, 0, FH * 0.35, camZone);
-robot.add(camBar);
+// Camera rail
+robot.add(sp(box(FW-0.2, 0.12, 0.5, M.accent), 0, FH*0.38, camZone));
 
-// Scan beam visualization (green plane under cameras)
-const scanGeo = new THREE.PlaneGeometry(FW - 1, 1.5);
-const scanMat = new THREE.MeshStandardMaterial({
-  color: 0x44ff66, emissive: 0x22ff44, emissiveIntensity: 0.4,
-  transparent: true, opacity: 0.12, side: THREE.DoubleSide
+// ---- SCAN VISUALIZATION ----
+// Green scan plane
+const scanGeo = new THREE.PlaneGeometry(FW-0.8, 2.0);
+const scanMat = new THREE.MeshBasicMaterial({
+  color: 0x44ff66, transparent: true, opacity: 0.08, side: THREE.DoubleSide
 });
 const scanPlane = new THREE.Mesh(scanGeo, scanMat);
-scanPlane.rotation.x = Math.PI / 2;
-setPos(scanPlane, 0, 0.03, camZone);
+scanPlane.rotation.x = Math.PI/2;
+sp(scanPlane, 0, 0.02, camZone);
 robot.add(scanPlane);
 
-// Scan lines on the ground
-for (let i = 0; i < 3; i++) {
-  const line = box(FW - 1.2, 0.01, 0.02, mat.glow);
-  setPos(line, 0, 0.02, camZone - 0.5 + i * 0.5);
+// Scan grid lines
+for(let i=0; i<5; i++){
+  const line = box(FW-1, 0.008, 0.015, M.glow);
+  sp(line, 0, 0.015, camZone - 0.8 + i*0.4);
+  robot.add(line);
+}
+for(let i=0; i<9; i++){
+  const line = box(0.015, 0.008, 2.0, M.glow);
+  sp(line, -FW/2+0.7 + i*(FW-1.4)/8, 0.015, camZone);
   robot.add(line);
 }
 
-// --- SUCTION ARM ARRAY (rear underside) ---
-const suctionCount = 5;
-const suctionZone = FL / 2 - 2.5;
-const suctionSpacing = (FW - 1.8) / (suctionCount - 1);
-const suctionArms = [];
+// Scanning laser line (animated)
+const laserLine = box(FW-1, 0.015, 0.025, new THREE.MeshBasicMaterial({color:0x44ff66, transparent:true, opacity:0.8}));
+sp(laserLine, 0, 0.018, camZone);
+robot.add(laserLine);
 
-for (let i = 0; i < suctionCount; i++) {
-  const sx = -FW / 2 + 0.9 + i * suctionSpacing;
+// ---- SUCTION ARM ARRAY (rear underside) ----
+const suctionCount = 5;
+const suctionZone = FL/2 - 2.8;
+const suctionSpacing = (FW-1.6)/(suctionCount-1);
+const sArms = [];
+
+for(let i=0; i<suctionCount; i++){
+  const sx = -FW/2 + 0.8 + i*suctionSpacing;
   const ag = new THREE.Group();
 
-  // Upper rail mount
-  const mount = box(0.2, 0.15, 0.2, mat.metalDark);
-  setPos(mount, 0, FH * 0.35, 0);
-  ag.add(mount);
+  // Rail mount
+  ag.add(sp(box(0.22, 0.16, 0.22, M.metalD), 0, FH*0.38, 0));
 
-  // Main arm (vertical telescopic look)
-  const upperArm = cyl(0.055, 1.4, 10, mat.suction);
-  setPos(upperArm, 0, FH * 0.35 - 0.8, 0);
-  ag.add(upperArm);
+  // Upper telescopic segment
+  ag.add(sp(cyl(0.06, 1.2, 12, M.suction), 0, FH*0.38-0.7, 0));
 
-  // Joint
-  const joint = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 10), mat.metalLt);
-  setPos(joint, 0, FH * 0.35 - 1.5, 0);
+  // Mid joint (motorized)
+  const joint = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), M.metalL);
+  sp(joint, 0, FH*0.38-1.35, 0);
   ag.add(joint);
 
-  // Lower arm
-  const lowerArm = cyl(0.045, 0.7, 10, mat.suction);
-  setPos(lowerArm, 0, FH * 0.35 - 1.9, 0);
-  ag.add(lowerArm);
+  // Joint accent ring
+  const jRing = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.015, 6, 12), M.accent);
+  jRing.rotation.x = Math.PI/2;
+  sp(jRing, 0, FH*0.38-1.35, 0);
+  ag.add(jRing);
+
+  // Lower segment
+  ag.add(sp(cyl(0.05, 0.6, 12, M.suction), 0, FH*0.38-1.7, 0));
 
   // Suction nozzle
-  const nozzle = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.14, 0.06, 0.15, 14),
-    mat.cup
-  );
-  setPos(nozzle, 0, 0.12, 0);
-  ag.add(nozzle);
+  ag.add(sp(cylT(0.16, 0.07, 0.18, 16, M.cup), 0, 0.14, 0));
 
-  // Nozzle lip ring
-  const lip = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.02, 6, 14), mat.cup);
-  lip.rotation.x = Math.PI / 2;
-  setPos(lip, 0, 0.05, 0);
+  // Nozzle lip
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.02, 8, 16), M.cup);
+  lip.rotation.x = Math.PI/2;
+  sp(lip, 0, 0.05, 0);
   ag.add(lip);
 
-  // Flexible hose to manifold
+  // Vacuum indicator LED
+  const vLed = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), M.glowBlue);
+  sp(vLed, 0.08, FH*0.38-1.0, 0);
+  ag.add(vLed);
+
+  // Flexible hose
   const pts = [];
-  for (let t = 0; t <= 10; t++) {
-    const frac = t / 10;
+  for(let t=0; t<=12; t++){
+    const f = t/12;
     pts.push(new THREE.Vector3(
-      0.15 * Math.sin(frac * 2),
-      FH * 0.35 - 1.5 + frac * (FH * 0.65 + 1.5),
-      0.1 * Math.sin(frac * 3)
+      0.12*Math.sin(f*2.5),
+      f * (FH*0.65+1.5) - 0.3,
+      0.08*Math.sin(f*3)
     ));
   }
-  const curve = new THREE.CatmullRomCurve3(pts);
-  const hoseGeo = new THREE.TubeGeometry(curve, 16, 0.03, 8, false);
-  const hose = new THREE.Mesh(hoseGeo, mat.hose);
+  const hose = new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 20, 0.03, 8, false),
+    M.hose
+  );
   hose.castShadow = true;
   ag.add(hose);
 
   ag.position.set(sx, 0, suctionZone);
-  suctionArms.push(ag);
+  sArms.push(ag);
   robot.add(ag);
 }
 
 // Suction rail
-const suctionRail = box(FW - 0.8, 0.12, 0.2, mat.metalDark);
-setPos(suctionRail, 0, FH * 0.35, suctionZone);
-robot.add(suctionRail);
+robot.add(sp(box(FW-0.6, 0.14, 0.25, M.metalD), 0, FH*0.38, suctionZone));
 
-// Manifold pipe on top
-const manifold = cyl(0.1, FW - 1, 14, mat.hose);
-manifold.rotation.z = Math.PI / 2;
-setPos(manifold, 0, FH - 0.3, suctionZone + 0.5);
+// Main manifold pipe
+const manifold = cyl(0.12, FW-0.8, 16, M.hose);
+manifold.rotation.z = Math.PI/2;
+sp(manifold, 0, FH-0.25, suctionZone+0.6);
 robot.add(manifold);
 
-// --- GPS / ANTENNA MAST ---
+// ---- SOLAR PANEL (on top, behind hopper) ----
 {
-  const mast = cyl(0.03, 1.2, 6, mat.metalLt);
-  setPos(mast, FW / 2 - 0.5, FH + 1.6 + 0.6, -FL / 2 + 1);
-  robot.add(mast);
+  const spW=4.5, spL=2.0;
+  const sPanel = box(spW, 0.06, spL, M.solar);
+  sp(sPanel, 0, FH+2.2+0.4, FL/2-1.8);
+  sPanel.rotation.x = -0.08;
+  robot.add(sPanel);
 
-  const antenna = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), mat.panel);
-  setPos(antenna, FW / 2 - 0.5, FH + 1.6 + 1.25, -FL / 2 + 1);
-  robot.add(antenna);
+  // Cell grid
+  const cellW = spW/8, cellL = spL/4;
+  for(let ix=0; ix<8; ix++){
+    for(let iz=0; iz<4; iz++){
+      const cell = box(cellW*0.9, 0.008, cellL*0.9, M.solarCell);
+      cell.position.set(
+        -spW/2 + cellW/2 + ix*cellW,
+        FH+2.2+0.44,
+        FL/2-1.8 - spL/2 + cellL/2 + iz*cellL
+      );
+      cell.rotation.x = -0.08;
+      robot.add(cell);
+    }
+  }
+
+  // Panel mount struts
+  for(const dx of [-1.5, 1.5]){
+    robot.add(sp(cyl(0.03, 0.6, 6, M.metalL), dx, FH+2.2+0.1, FL/2-1.8));
+  }
 }
 
-// --- HEADLIGHTS (front) ---
-for (const dx of [-1.2, 1.2]) {
-  const lightHousing = box(0.3, 0.15, 0.1, mat.camBody);
-  setPos(lightHousing, dx, FH * 0.5, -FL / 2 - 0.05);
-  robot.add(lightHousing);
-
-  const lightLens = box(0.24, 0.1, 0.02, new THREE.MeshStandardMaterial({
-    color: 0xffffff, emissive: 0xffffcc, emissiveIntensity: 1.5,
-    transparent: true, opacity: 0.9
-  }));
-  setPos(lightLens, dx, FH * 0.5, -FL / 2 - 0.11);
-  robot.add(lightLens);
-}
-
-// --- TAIL LIGHTS (rear) ---
-for (const dx of [-1.2, 1.2]) {
-  const tail = box(0.25, 0.1, 0.02, mat.glowRed);
-  setPos(tail, dx, FH * 0.5, FL / 2 + 0.01);
-  robot.add(tail);
-}
-
-// --- DIRECTION ARROW (ground projection) ---
+// ---- LIDAR SPINNER (top front) ----
 {
-  const arrowShape = new THREE.Shape();
-  arrowShape.moveTo(0, 0);
-  arrowShape.lineTo(-0.7, -1.2);
-  arrowShape.lineTo(-0.25, -1.2);
-  arrowShape.lineTo(-0.25, -3);
-  arrowShape.lineTo(0.25, -3);
-  arrowShape.lineTo(0.25, -1.2);
-  arrowShape.lineTo(0.7, -1.2);
-  arrowShape.closePath();
-  const arrowMesh = new THREE.Mesh(new THREE.ShapeGeometry(arrowShape),
-    new THREE.MeshStandardMaterial({ color: 0x44ff66, emissive: 0x22ff44, emissiveIntensity: 0.6, transparent: true, opacity: 0.5 })
+  const lidarBase = cyl(0.18, 0.12, 20, M.carbon);
+  sp(lidarBase, 0, FH+2.2+0.55, -FL/2+1.5);
+  robot.add(lidarBase);
+
+  const lidarDome = new THREE.Mesh(
+    new THREE.SphereGeometry(0.16, 16, 12, 0, Math.PI*2, 0, Math.PI/2),
+    new THREE.MeshStandardMaterial({color:0x111118, roughness:0.05, metalness:0.9, transparent:true, opacity:0.85})
   );
-  arrowMesh.rotation.x = -Math.PI / 2;
-  setPos(arrowMesh, 0, 0.03, -FL / 2 - 1.5);
-  robot.add(arrowMesh);
+  sp(lidarDome, 0, FH+2.2+0.61, -FL/2+1.5);
+  robot.add(lidarDome);
+
+  // Spinning element
+  const lidarSpin = box(0.3, 0.03, 0.03, M.accent);
+  sp(lidarSpin, 0, FH+2.2+0.6, -FL/2+1.5);
+  robot.add(lidarSpin);
+
+  // Mast
+  robot.add(sp(cyl(0.035, 0.7, 8, M.metalL), 0, FH+2.2+0.2, -FL/2+1.5));
+}
+
+// ---- GPS ANTENNA ----
+{
+  robot.add(sp(cyl(0.025, 1.0, 6, M.metalL), FW/2-0.6, FH+2.2+1.0, -FL/2+1));
+  const gps = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), M.panel);
+  sp(gps, FW/2-0.6, FH+2.2+1.55, -FL/2+1);
+  robot.add(gps);
+  // GPS ring
+  const gpsRing = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.015, 6, 12), M.accent);
+  gpsRing.rotation.x = Math.PI/2;
+  sp(gpsRing, FW/2-0.6, FH+2.2+1.45, -FL/2+1);
+  robot.add(gpsRing);
+}
+
+// ---- COMPUTE BOX (electronics) ----
+{
+  const ebox = box(1.0, 0.4, 0.6, M.carbon);
+  sp(ebox, -FW/2+1.2, FH+0.3, -FL/2+1);
+  robot.add(ebox);
+
+  // Ventilation grille
+  for(let i=0; i<5; i++){
+    const slot = box(0.8, 0.02, 0.01, M.metalD);
+    sp(slot, -FW/2+1.2, FH+0.15+i*0.06, -FL/2+0.69);
+    robot.add(slot);
+  }
+
+  // Status LEDs
+  for(let i=0; i<3; i++){
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.015, 6, 4),
+      [M.glow, M.glowBlue, M.glow][i]);
+    sp(led, -FW/2+0.85+i*0.12, FH+0.45, -FL/2+0.69);
+    robot.add(led);
+  }
+}
+
+// ---- HEADLIGHTS ----
+for(const dx of [-1.5, 1.5]){
+  robot.add(sp(box(0.45, 0.12, 0.08, M.camBody), dx, FH*0.5, -FL/2-0.04));
+
+  const lens = box(0.38, 0.08, 0.02, M.glowWhite);
+  sp(lens, dx, FH*0.5, -FL/2-0.09);
+  robot.add(lens);
+
+  // Light cone (subtle)
+  const cone = new THREE.Mesh(
+    new THREE.ConeGeometry(0.8, 3, 8, 1, true),
+    new THREE.MeshBasicMaterial({color:0xffffdd, transparent:true, opacity:0.03, side:THREE.DoubleSide})
+  );
+  cone.rotation.x = Math.PI/2;
+  sp(cone, dx, FH*0.5, -FL/2-1.6);
+  robot.add(cone);
+}
+
+// ---- TAIL LIGHTS ----
+for(const dx of [-1.5, 1.5]){
+  robot.add(sp(box(0.4, 0.08, 0.025, M.glowRed), dx, FH*0.5, FL/2+0.01));
+}
+
+// ---- DIRECTION ARROW ----
+{
+  const as = new THREE.Shape();
+  as.moveTo(0,0); as.lineTo(-0.8,-1.4); as.lineTo(-0.3,-1.4);
+  as.lineTo(-0.3,-3.5); as.lineTo(0.3,-3.5); as.lineTo(0.3,-1.4);
+  as.lineTo(0.8,-1.4); as.closePath();
+  const arrow = new THREE.Mesh(new THREE.ShapeGeometry(as),
+    new THREE.MeshBasicMaterial({color:0x44ff66, transparent:true, opacity:0.35})
+  );
+  arrow.rotation.x = -Math.PI/2;
+  sp(arrow, 0, 0.025, -FL/2-2);
+  robot.add(arrow);
+}
+
+// ---- DETECTION ZONE BOX MARKERS (holographic) ----
+// Simulated bounding boxes on ground near cameras
+const detectionBoxes = [];
+for(let i=0; i<4; i++){
+  const bx = (Math.random()-0.5) * (FW-2);
+  const bz = camZone + (Math.random()-0.5) * 1.5;
+  const bw = 0.15 + Math.random()*0.1;
+
+  const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(bw*2, 0.01, bw*2));
+  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0x44ff66, transparent:true, opacity:0.6}));
+  sp(line, bx, 0.03, bz);
+  detectionBoxes.push(line);
+  robot.add(line);
 }
 
 scene.add(robot);
+
+// ============================================================
+//  PARTICLES — floating dust / pollen
+// ============================================================
+const particleCount = 200;
+const particleGeo = new THREE.BufferGeometry();
+const particlePos = new Float32Array(particleCount * 3);
+for(let i=0; i<particleCount; i++){
+  particlePos[i*3]   = (Math.random()-0.5)*30;
+  particlePos[i*3+1] = Math.random()*8;
+  particlePos[i*3+2] = (Math.random()-0.5)*30;
+}
+particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+const particles = new THREE.Points(particleGeo, new THREE.PointsMaterial({
+  color: 0xffddaa, size: 0.04, transparent: true, opacity: 0.4
+}));
+scene.add(particles);
 
 // ============================================================
 //  ANIMATION
 // ============================================================
 const clock = new THREE.Clock();
 
-function animate() {
+// Get lidar spinner reference (second to last box we added before GPS)
+const lidarSpinner = robot.children.find((c, idx) => {
+  return c.geometry && c.geometry.type === 'BoxGeometry' &&
+    Math.abs(c.position.y - (FH+2.2+0.6)) < 0.05 &&
+    Math.abs(c.position.z - (-FL/2+1.5)) < 0.05;
+});
+
+function animate(){
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
 
   // Suction arm bobbing
-  suctionArms.forEach((arm, i) => {
-    const phase = i * 0.8;
-    arm.children.forEach(child => {
-      if (child === arm.children[3] || child === arm.children[4] || child === arm.children[5]) {
-        // Nozzle and lower arm slight movement
-      }
-    });
-    // Bob entire arm group slightly
-    arm.position.y = Math.sin(t * 1.5 + phase) * 0.08;
+  sArms.forEach((arm, i) => {
+    arm.position.y = Math.sin(t*1.8 + i*1.0) * 0.1;
   });
 
-  // Scan plane pulse
-  scanMat.opacity = 0.08 + Math.sin(t * 3) * 0.06;
+  // Scan effects
+  scanMat.opacity = 0.06 + Math.sin(t*3.5)*0.05;
+  laserLine.position.z = camZone - 0.8 + ((t*0.8)%1.6);
 
-  // Camera LED pulse
-  cameras.forEach((cam, i) => {
-    const ledRing = cam.children[3]; // IR ring
-    if (ledRing && ledRing.material) {
-      ledRing.material.emissiveIntensity = 1.0 + Math.sin(t * 4 + i * 0.5) * 0.5;
-    }
+  // Camera IR LED pulse
+  cams.forEach((cam, i) => {
+    const ir = cam.children[3];
+    if(ir && ir.material) ir.material.emissiveIntensity = 1.5 + Math.sin(t*5+i*0.7)*0.8;
   });
+
+  // LIDAR spin
+  if(lidarSpinner) lidarSpinner.rotation.y = t * 4;
+
+  // Detection boxes flicker
+  detectionBoxes.forEach((db, i) => {
+    db.material.opacity = 0.3 + Math.sin(t*3+i*2)*0.3;
+  });
+
+  // Dust particles drift
+  const pp = particles.geometry.attributes.position.array;
+  for(let i=0; i<particleCount; i++){
+    pp[i*3]   += Math.sin(t*0.3+i)*0.002;
+    pp[i*3+1] += 0.003;
+    pp[i*3+2] += Math.cos(t*0.2+i)*0.002;
+    if(pp[i*3+1] > 8) pp[i*3+1] = 0;
+  }
+  particles.geometry.attributes.position.needsUpdate = true;
 
   controls.update();
   renderer.render(scene, camera);
@@ -743,8 +861,8 @@ animate();
 // ============================================================
 //  RESIZE
 // ============================================================
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });

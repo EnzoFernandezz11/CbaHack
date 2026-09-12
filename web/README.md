@@ -7,9 +7,9 @@ El frontend usa HTML, CSS y JavaScript nativo. No requiere instalar dependencias
 - `/camera/`: solicita la cámara tras una acción del usuario, comprime frames JPEG y los envía al backend.
 - `/viewer/`: recibe los frames procesados y muestra una animación ilustrativa de la tolva. Las métricas solo se actualizan si el backend envía telemetría real.
 
-La vista de cámara muestra el encuadre completo, sin recortar los bordes, y ocupa como máximo el 60 % del alto de la pantalla. El visor usa un marco vertical 9:16 que se ajusta a la altura de la ventana y tiene un ancho máximo de 360 px.
+La vista de cámara muestra el encuadre completo, sin recortar los bordes, y ocupa como máximo el 60 % del alto de la pantalla. El visor usa un marco vertical 9:16 que se ajusta a la altura de la ventana y tiene un ancho máximo de 400 px en escritorio.
 El visor conserva la proporción de cada JPEG: si el celular transmite en vertical, el frame queda centrado con bandas negras a los lados.
-En escritorio, Conexiones y Tolva quedan a la izquierda, el video al centro, y el mapa de pérdidas con las métricas a la derecha. Operación queda debajo de ese bloque.
+En escritorio, el encabezado ocupa una barra vertical angosta a la izquierda. Conexiones y Tolva quedan junto a ella, el video ampliado al centro, y el mapa de pérdidas con las métricas a la derecha. Operación queda debajo de ese bloque. En pantallas estrechas, el encabezado vuelve a una fila compacta.
 
 Para revisar el frontend localmente:
 

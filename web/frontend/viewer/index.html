@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0d1511">
   <title>Panel · Rehearves</title>
-  <link rel="stylesheet" href="../assets/app.css?v=6">
+  <link rel="stylesheet" href="../assets/app.css?v=7">
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
+  <main class="app viewer-app">
+    <header class="topbar viewer-rail">
       <div class="brand"><div class="logo" aria-hidden="true">🥜</div><div><h1>Rehearves</h1><p class="subtitle">Detección de pérdidas en superficie</p></div></div>
       <div class="status-group"><span class="pill" id="viewer-connection"><span class="dot"></span><span>Conectando</span></span><span class="pill">Establecimiento La Esperanza</span></div>
     </header>
@@ -141,6 +141,6 @@
   </main>
   <dialog id="schedule-dialog"><form class="modal" method="dialog"><h2>Programar tarea</h2><p>Configuración demostrativa del próximo relevamiento.</p><div class="fields"><label class="full">Nombre<input value="Relevamiento Lote Norte"></label><label>Fecha<input type="date" value="2026-09-13"></label><label>Hora<input type="time" value="09:00"></label></div><div class="modal-actions"><button class="action" value="cancel">Cancelar</button><button class="action primary" value="confirm" id="confirm-schedule">Programar</button></div></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="../assets/viewer.js?v=6"></script>
+  <script type="module" src="../assets/viewer.js?v=7"></script>
 </body>
 </html>

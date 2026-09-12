@@ -36,9 +36,22 @@ h1 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
 .error .dot, .dot.error { background: var(--danger); box-shadow: 0 0 0 4px rgba(255, 107, 98, .12); }
 .panel { border: 1px solid var(--line); border-radius: var(--radius); background: rgba(20, 32, 25, .94); }
 .eyebrow { color: var(--muted); font-size: 10px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
-.dashboard-layout { display: grid; grid-template-columns: 18% min(360px, calc(39.375vh + 22px)) minmax(0, 1fr); align-items: stretch; gap: 12px; }
+.viewer-app { display: grid; grid-template-columns: 80px minmax(0, 1fr); column-gap: 12px; align-items: start; padding-top: 12px; }
+.viewer-rail { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 12px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 20px; min-height: min(calc(100vh - 24px), 720px); margin: 0; padding: 12px 7px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(20, 32, 25, .94); }
+.viewer-rail .brand { flex-direction: column; gap: 8px; text-align: center; }
+.viewer-rail .brand > div:last-child { min-width: 0; }
+.viewer-rail .logo { flex: none; width: 40px; height: 40px; margin: 0 auto; }
+.viewer-rail h1 { font-size: 11px; line-height: 1.1; overflow-wrap: anywhere; }
+.viewer-rail .subtitle { margin-top: 6px; font-size: 9px; line-height: 1.25; overflow-wrap: anywhere; }
+.viewer-rail .status-group { flex-direction: column; align-items: stretch; gap: 8px; }
+.viewer-rail .pill { display: flex; flex-direction: column; justify-content: center; gap: 5px; min-height: 0; padding: 8px 4px; border-radius: 10px; font-size: 9px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.viewer-rail .dot { flex: none; }
+.viewer-app .dashboard-layout { grid-column: 2; grid-row: 1; }
+.viewer-app .dashboard-operation { grid-column: 2; grid-row: 2; }
+.dashboard-layout { display: grid; grid-template-columns: 18% min(400px, calc(39.375vh + 57px)) minmax(0, 1fr); align-items: stretch; gap: 12px; }
 @supports (height: 1dvh) {
-  .dashboard-layout { grid-template-columns: 18% min(360px, calc(39.375dvh + 22px)) minmax(0, 1fr); }
+  .viewer-rail { min-height: min(calc(100dvh - 24px), 720px); }
+  .dashboard-layout { grid-template-columns: 18% min(400px, calc(39.375dvh + 57px)) minmax(0, 1fr); }
 }
 .dashboard-left, .dashboard-right { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .dashboard-operation { width: min(100%, 360px); margin-top: 14px; }
@@ -82,9 +95,9 @@ h1 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
 .dashboard-left .hopper-visual { min-height: 90px; }
 .dashboard-left .hopper-visual svg { width: min(100%, 220px); max-height: 180px; }
 .dashboard-left .hopper-caption { margin-top: 5px; font-size: 9px; }
-.dashboard-right .map-panel { display: flex; flex-direction: column; height: min(62vh, 480px); min-height: 240px; margin: 0; padding: 12px; }
+.dashboard-right .map-panel { display: flex; flex-direction: column; height: min(calc(62vh + 42px), 600px); min-height: 240px; margin: 0; padding: 12px; }
 @supports (height: 1dvh) {
-  .dashboard-right .map-panel { height: min(62dvh, 480px); }
+  .dashboard-right .map-panel { height: min(calc(62dvh + 42px), 600px); }
 }
 .dashboard-right .map { flex: 1; min-height: 0; height: auto; }
 .dashboard-right .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
@@ -178,8 +191,19 @@ input, select { width: 100%; margin-top: 6px; padding: 10px; border: 1px solid v
 .camera-stats strong { color: var(--text); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-@media (max-width: 950px) {
-  .dashboard-layout { grid-template-columns: minmax(0, min(38vw, 330px)) minmax(0, 1fr); grid-template-areas: "video right" "left right"; }
+@media (max-width: 1120px) {
+  .viewer-app { display: block; padding-top: 24px; }
+  .viewer-rail { position: static; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; min-height: 0; margin-bottom: 14px; padding: 0; border: 0; background: transparent; }
+  .viewer-rail .brand { flex-direction: row; align-items: center; gap: 12px; text-align: left; }
+  .viewer-rail .logo { width: 42px; height: 42px; margin: 0; }
+  .viewer-rail h1 { font-size: 18px; }
+  .viewer-rail .subtitle { margin-top: 3px; font-size: 13px; }
+  .viewer-rail .status-group { flex-direction: row; align-items: center; gap: 10px; }
+  .viewer-rail .pill { display: inline-flex; flex-direction: row; gap: 8px; min-height: 38px; padding: 0 13px; border-radius: 999px; font-size: 12px; white-space: nowrap; }
+  .dashboard-layout { grid-template-columns: minmax(0, min(38vw, 330px, calc(33.75vh + 22px))) minmax(0, 1fr); grid-template-areas: "video right" "left right"; }
+  @supports (height: 1dvh) {
+    .dashboard-layout { grid-template-columns: minmax(0, min(38vw, 330px, calc(33.75dvh + 22px))) minmax(0, 1fr); }
+  }
   .dashboard-left { grid-area: left; }
   .video-panel { grid-area: video; }
   .dashboard-right { grid-area: right; }

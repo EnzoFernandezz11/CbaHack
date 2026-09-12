@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maní Rover · Boceto MVP</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1511;
+      --surface: #142019;
+      --surface-2: #1a2920;
+      --line: #2a3b30;
+      --text: #f4f1e8;
+      --muted: #98a99d;
+      --lime: #c9f269;
+      --orange: #ffad5a;
+      --danger: #ff6b62;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(201, 242, 105, .08), transparent 28rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button { font: inherit; }
+
+    .app {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 13px;
+      background: var(--lime);
+      color: #17200f;
+      font-size: 22px;
+      font-weight: 900;
+    }
+    h1 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+    .subtitle { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+
+    .system-status { display: flex; align-items: center; gap: 14px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 4px rgba(201, 242, 105, .12); }
+    .eyebrow { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+    }
+
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: rgba(20, 32, 25, .94); }
+    .video-panel { padding: 12px; }
+    .video-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 4px 4px 12px; }
+    .video-title { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 800; }
+    .live { padding: 5px 8px; border-radius: 7px; background: var(--danger); color: white; font-size: 10px; letter-spacing: .08em; }
+
+    .camera {
+      position: relative;
+      overflow: hidden;
+      min-height: 520px;
+      border-radius: 13px;
+      background:
+        linear-gradient(28deg, transparent 47%, rgba(255,255,255,.05) 49%, transparent 51%) 0 0 / 86px 86px,
+        radial-gradient(ellipse at 70% 28%, #ab7d43 0 2%, transparent 2.4%),
+        radial-gradient(ellipse at 32% 68%, #c19052 0 2.4%, transparent 2.8%),
+        radial-gradient(ellipse at 45% 38%, #bd8b4b 0 1.8%, transparent 2.2%),
+        radial-gradient(ellipse at 77% 72%, #a6733b 0 2%, transparent 2.5%),
+        linear-gradient(145deg, #735a36, #493b27 70%);
+      isolation: isolate;
+    }
+    .camera::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: .5;
+      background-image: repeating-linear-gradient(8deg, transparent 0 29px, rgba(30, 21, 10, .35) 31px, transparent 34px);
+    }
+    .camera::after {
+      content: "CÁMARA DEL ROBOT  ·  1280 × 720";
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      color: rgba(255,255,255,.72);
+      font: 700 10px/1 ui-monospace, monospace;
+      letter-spacing: .08em;
+    }
+    .box { position: absolute; border: 2px solid var(--lime); border-radius: 5px; box-shadow: 0 0 0 1px rgba(0,0,0,.28); }
+    .box span { position: absolute; left: -2px; top: -24px; padding: 4px 6px; border-radius: 5px 5px 5px 0; background: var(--lime); color: #17200f; font: 800 10px/1 ui-monospace, monospace; white-space: nowrap; }
+    .b1 { left: 22%; top: 24%; width: 12%; height: 10%; }
+    .b2 { left: 55%; top: 45%; width: 15%; height: 12%; }
+    .b3 { left: 31%; top: 69%; width: 11%; height: 9%; }
+    .b4 { left: 74%; top: 22%; width: 10%; height: 9%; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .metric { padding: 17px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); }
+    .value { margin-top: 7px; font-size: clamp(21px, 2.3vw, 30px); font-weight: 850; letter-spacing: -.04em; }
+    .unit { margin-left: 4px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .value.highlight { color: var(--lime); }
+
+    aside { display: flex; flex-direction: column; gap: 14px; }
+    .control { padding: 18px; }
+    .section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title h2 { margin: 0; font-size: 15px; }
+    .small-status { color: var(--lime); font-size: 12px; font-weight: 750; }
+    .small-status::before { content: "●"; margin-right: 6px; }
+
+    .task-summary { padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); }
+    .task-name { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .task-name strong { font-size: 14px; }
+    .task-name small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .task-tag { padding: 5px 7px; border-radius: 6px; background: rgba(201,242,105,.12); color: var(--lime); font-size: 10px; font-weight: 850; }
+    .progress { height: 7px; margin: 15px 0 8px; overflow: hidden; border-radius: 999px; background: #0f1813; }
+    .progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--lime); transition: width .35s ease; }
+    .task-detail { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+
+    .actions { display: grid; gap: 9px; margin-top: 14px; }
+    .action {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #203127;
+      color: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .08s, filter .08s;
+    }
+    .action:hover { filter: brightness(1.12); }
+    .action:active { transform: translateY(1px); }
+    .action.primary { border-color: var(--lime); background: var(--lime); color: #17200f; }
+    .action.danger { border-color: rgba(255,107,98,.45); background: rgba(255,107,98,.12); color: var(--danger); }
+    .action:disabled { opacity: .42; cursor: not-allowed; filter: none; }
+
+    .connections { padding: 18px; }
+    .connection { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 9px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+    .connection:last-child { border-bottom: 0; }
+    .connection-icon { display: grid; place-items: center; color: var(--lime); }
+    .connection strong { display: block; font-size: 13px; }
+    .connection small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .ok { color: var(--lime); font-size: 11px; font-weight: 800; }
+
+    .estimate-note { padding: 15px 18px; border-color: rgba(255,173,90,.24); color: #d6c5ac; font-size: 12px; line-height: 1.55; }
+    .estimate-note strong { color: var(--orange); }
+
+    .insights { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, .55fr); gap: 18px; margin-top: 18px; }
+    .map-panel, .history { padding: 18px; }
+    .map-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .map-head h2 { margin: 0; font-size: 16px; }
+    .map-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .segmented { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: #0e1712; }
+    .segmented button { padding: 7px 10px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 800; cursor: pointer; }
+    .segmented button.active { background: var(--surface-2); color: var(--text); }
+    .map { position: relative; overflow: hidden; height: 310px; border: 1px solid #314236; border-radius: 14px; background: #34432c; }
+    .map svg { display: block; width: 100%; height: 100%; }
+    .legend { position: absolute; left: 13px; bottom: 13px; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 9px; background: rgba(11,18,14,.86); color: var(--muted); font-size: 10px; backdrop-filter: blur(5px); }
+    .gradient { width: 78px; height: 7px; border-radius: 99px; background: linear-gradient(90deg, #c9f269, #ffbe4a, #ff6b62); }
+    .map-stat { position: absolute; right: 13px; top: 13px; padding: 10px 12px; border-radius: 10px; background: rgba(11,18,14,.86); backdrop-filter: blur(5px); }
+    .map-stat strong { display: block; color: var(--orange); font-size: 18px; }
+    .map-stat small { color: var(--muted); font-size: 10px; }
+
+    .history-list { display: grid; gap: 2px; }
+    .history-item { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 10px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .history-item:last-child { border-bottom: 0; }
+    .history-icon { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: var(--surface-2); color: var(--lime); font-size: 14px; }
+    .history-item strong { display: block; font-size: 12px; }
+    .history-item small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .history-value { color: var(--text); font-size: 11px; font-weight: 800; }
+    .report { margin-top: 12px; }
+
+    dialog { width: min(480px, calc(100% - 28px)); padding: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--text); box-shadow: 0 24px 80px rgba(0,0,0,.55); }
+    dialog::backdrop { background: rgba(4,9,6,.72); backdrop-filter: blur(4px); }
+    .modal { padding: 22px; }
+    .modal h2 { margin: 0; font-size: 18px; }
+    .modal > p { margin: 7px 0 20px; color: var(--muted); font-size: 12px; }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { color: var(--muted); font-size: 11px; font-weight: 750; }
+    label.full { grid-column: 1 / -1; }
+    input, select { width: 100%; margin-top: 6px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; background: #0e1712; color: var(--text); font: inherit; font-size: 13px; }
+    input:focus, select:focus { border-color: var(--lime); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
+    .modal-actions .action { width: auto; padding: 0 18px; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 5;
+      transform: translate(-50%, 20px);
+      padding: 11px 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #edf5e8;
+      color: #142019;
+      font-size: 13px;
+      font-weight: 800;
+      opacity: 0;
+      pointer-events: none;
+      transition: .18s ease;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { display: grid; grid-template-columns: 1fr 1fr; }
+      .estimate-note { grid-column: 1 / -1; }
+      .insights { grid-template-columns: 1fr; }
+      .camera { min-height: 430px; }
+    }
+
+    @media (max-width: 620px) {
+      .app { padding: 14px; }
+      header { align-items: flex-start; }
+      .system-status .pill:first-child { display: none; }
+      .camera { min-height: 350px; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      aside { display: flex; }
+      .map-head { flex-direction: column; }
+      .map { height: 270px; }
+      .fields { grid-template-columns: 1fr; }
+      label.full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">🥜</div>
+        <div>
+          <h1>Maní Rover</h1>
+          <p class="subtitle">Detección de pérdidas en superficie</p>
+        </div>
+      </div>
+      <div class="system-status" aria-label="Estado general">
+        <span class="pill"><span class="dot"></span>Sistema operativo</span>
+        <span class="pill">Establecimiento La Esperanza</span>
+      </div>
+    </header>
+
+    <section class="layout">
+      <div>
+        <section class="panel video-panel" aria-label="Video procesado">
+          <div class="video-toolbar">
+            <div class="video-title"><span class="live">EN VIVO</span> Visión procesada</div>
+            <span class="eyebrow">YOLO · Conf. 0,72</span>
+          </div>
+          <div class="camera" role="img" aria-label="Simulación de suelo con cuatro vainas detectadas">
+            <div class="box b1"><span>vaina 91%</span></div>
+            <div class="box b2"><span>vaina 87%</span></div>
+            <div class="box b3"><span>vaina 82%</span></div>
+            <div class="box b4"><span>vaina 76%</span></div>
+          </div>
+        </section>
+
+        <section class="metrics" aria-label="Métricas de la detección">
+          <article class="metric">
+            <div class="eyebrow">Vainas visibles</div>
+            <div class="value highlight" id="pods">14</div>
+          </article>
+          <article class="metric">
+            <div class="eyebrow">Pérdida estimada</div>
+            <div class="value">6,8<span class="unit">kg/ha</span></div>
+          </article>
+          <article class="metric">
+            <div class="eyebrow">Procesamiento</div>
+            <div class="value">8,2<span class="unit">FPS</span></div>
+          </article>
+          <article class="metric">
+            <div class="eyebrow">Latencia</div>
+            <div class="value">124<span class="unit">ms</span></div>
+          </article>
+        </section>
+      </div>
+
+      <aside>
+        <section class="panel control">
+          <div class="section-title">
+            <h2>Operación</h2>
+            <span class="small-status" id="task-status">En espera</span>
+          </div>
+          <div class="task-summary">
+            <div class="task-name">
+              <span><strong>Relevamiento Lote Norte</strong><small>Sector A · 1,4 ha</small></span>
+              <span class="task-tag" id="task-tag">LISTA</span>
+            </div>
+            <div class="progress" aria-label="Progreso de la tarea"><span id="task-progress"></span></div>
+            <div class="task-detail"><span id="progress-label">0% completado</span><span>~18 min</span></div>
+          </div>
+          <div class="actions">
+            <button class="action primary" type="button" id="start-task">▶ Comenzar tarea</button>
+            <button class="action danger" type="button" id="stop-task" disabled>■ Detener tarea</button>
+            <button class="action" type="button" id="schedule-task">◷ Programar tarea</button>
+          </div>
+        </section>
+
+        <section class="panel connections">
+          <div class="section-title"><h2>Conexiones</h2></div>
+          <div class="connection">
+            <span class="connection-icon" aria-hidden="true">◉</span>
+            <span><strong>Cámara</strong><small>Celular · WebSocket</small></span>
+            <span class="ok">ONLINE</span>
+          </div>
+          <div class="connection">
+            <span class="connection-icon" aria-hidden="true">◈</span>
+            <span><strong>Modelo YOLO</strong><small>Backend local</small></span>
+            <span class="ok">LISTO</span>
+          </div>
+          <div class="connection">
+            <span class="connection-icon" aria-hidden="true">◇</span>
+            <span><strong>Robot ESP32</strong><small>192.168.4.1</small></span>
+            <span class="ok">ONLINE</span>
+          </div>
+        </section>
+
+        <aside class="panel estimate-note">
+          <strong>Dato demostrativo.</strong> La estimación usa el conteo del frame, el área calibrada y el peso promedio por vaina; no es una medición agronómica certificada.
+        </aside>
+      </aside>
+    </section>
+
+    <section class="insights" aria-label="Inteligencia del lote">
+      <article class="panel map-panel">
+        <div class="map-head">
+          <div>
+            <h2>Mapa de pérdidas · Lote Norte</h2>
+            <p>Detecciones georreferenciadas para priorizar las zonas con mayor pérdida.</p>
+          </div>
+          <div class="segmented" aria-label="Capa del mapa">
+            <button class="active" type="button" data-layer="heat">Calor</button>
+            <button type="button" data-layer="route">Recorrido</button>
+            <button type="button" data-layer="satellite">Satelital</button>
+          </div>
+        </div>
+        <div class="map">
+          <svg viewBox="0 0 900 350" role="img" aria-label="Mockup satelital del lote con mapa de calor de pérdidas">
+            <defs>
+              <pattern id="rows" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+                <rect width="22" height="22" fill="#405137"/>
+                <rect width="7" height="22" fill="#35462f"/>
+              </pattern>
+              <radialGradient id="hotRed">
+                <stop offset="0" stop-color="#ff554d" stop-opacity=".9"/>
+                <stop offset=".45" stop-color="#ff9e45" stop-opacity=".68"/>
+                <stop offset="1" stop-color="#ffcf4a" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="hotYellow">
+                <stop offset="0" stop-color="#ffd84d" stop-opacity=".78"/>
+                <stop offset="1" stop-color="#c9f269" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="900" height="350" fill="#2b3527"/>
+            <path d="M0 62L900 15V350H0Z" fill="url(#rows)"/>
+            <path d="M-30 303C165 261 241 278 383 238S681 150 930 181" fill="none" stroke="#a89b78" stroke-width="18" opacity=".62"/>
+            <path d="M-30 303C165 261 241 278 383 238S681 150 930 181" fill="none" stroke="#d8c99f" stroke-width="2" stroke-dasharray="13 12" opacity=".5"/>
+            <path d="M78 74L803 38L833 283L119 318Z" fill="none" stroke="#dbe9c5" stroke-width="2" opacity=".75"/>
+            <g data-map-layer="heat">
+              <ellipse cx="285" cy="145" rx="125" ry="92" fill="url(#hotRed)"/>
+              <ellipse cx="623" cy="222" rx="105" ry="76" fill="url(#hotRed)"/>
+              <ellipse cx="698" cy="93" rx="90" ry="63" fill="url(#hotYellow)"/>
+              <ellipse cx="446" cy="91" rx="75" ry="55" fill="url(#hotYellow)"/>
+            </g>
+            <path data-map-layer="route" d="M137 287C181 255 175 105 230 91S320 273 373 262 409 78 468 70 543 244 598 235 626 58 691 54 753 98 782 241" fill="none" stroke="#c9f269" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 8"/>
+            <g transform="translate(595 228)">
+              <circle r="11" fill="#c9f269" stroke="#122016" stroke-width="4"/>
+              <circle r="3" fill="#122016"/>
+            </g>
+            <text x="132" y="100" fill="#f4f1e8" font-size="13" font-weight="800">SECTOR A</text>
+            <text x="710" y="274" fill="#dce7dc" font-size="11">Camino rural</text>
+          </svg>
+          <div class="map-stat"><strong>2</strong><small>zonas prioritarias</small></div>
+          <div class="legend"><span>Baja</span><span class="gradient"></span><span>Alta</span></div>
+        </div>
+      </article>
+
+      <article class="panel history">
+        <div class="section-title">
+          <h2>Últimos relevamientos</h2>
+          <span class="eyebrow">Septiembre</span>
+        </div>
+        <div class="history-list">
+          <div class="history-item">
+            <span class="history-icon">✓</span>
+            <span><strong>Lote Sur · Sector C</strong><small>11 sep · 16:40</small></span>
+            <span class="history-value">5,2 kg/ha</span>
+          </div>
+          <div class="history-item">
+            <span class="history-icon">✓</span>
+            <span><strong>Lote Norte · Sector B</strong><small>10 sep · 09:15</small></span>
+            <span class="history-value">7,1 kg/ha</span>
+          </div>
+          <div class="history-item">
+            <span class="history-icon">✓</span>
+            <span><strong>Lote Este · Sector A</strong><small>08 sep · 18:05</small></span>
+            <span class="history-value">4,6 kg/ha</span>
+          </div>
+        </div>
+        <button class="action report" type="button" id="download-report">Descargar reporte del lote</button>
+      </article>
+    </section>
+  </main>
+
+  <dialog id="schedule-dialog">
+    <form class="modal" method="dialog">
+      <h2>Programar tarea</h2>
+      <p>Definí el lote y el momento del próximo relevamiento.</p>
+      <div class="fields">
+        <label class="full">Nombre de la tarea
+          <input value="Relevamiento Lote Norte" required>
+        </label>
+        <label>Lote
+          <select><option>Lote Norte</option><option>Lote Sur</option><option>Lote Este</option></select>
+        </label>
+        <label>Sector
+          <select><option>Sector A</option><option>Sector B</option><option>Sector C</option></select>
+        </label>
+        <label>Fecha
+          <input type="date" value="2026-09-13">
+        </label>
+        <label>Hora
+          <input type="time" value="09:00">
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="action" value="cancel">Cancelar</button>
+        <button class="action primary" value="confirm" id="confirm-schedule">Programar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Tarea actualizada</div>
+
+  <script>
+    (() => {
+      const status = document.querySelector('#task-status');
+      const tag = document.querySelector('#task-tag');
+      const progress = document.querySelector('#task-progress');
+      const progressLabel = document.querySelector('#progress-label');
+      const startButton = document.querySelector('#start-task');
+      const stopButton = document.querySelector('#stop-task');
+      const scheduleDialog = document.querySelector('#schedule-dialog');
+      const toast = document.querySelector('#toast');
+      let toastTimer;
+
+      function notify(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1200);
+      }
+
+      startButton.addEventListener('click', () => {
+        status.textContent = 'En curso';
+        tag.textContent = 'ACTIVA';
+        progress.style.width = '38%';
+        progressLabel.textContent = '38% completado';
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        notify('Tarea iniciada · Lote Norte');
+      });
+
+      stopButton.addEventListener('click', () => {
+        status.textContent = 'Detenida';
+        tag.textContent = 'PAUSADA';
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        startButton.textContent = '▶ Reanudar tarea';
+        notify('Tarea detenida de forma segura');
+      });
+
+      document.querySelector('#schedule-task').addEventListener('click', () => scheduleDialog.showModal());
+      document.querySelector('#confirm-schedule').addEventListener('click', () => notify('Tarea programada para mañana a las 09:00'));
+      document.querySelector('#download-report').addEventListener('click', () => notify('Reporte de ejemplo generado'));
+
+      document.querySelectorAll('[data-layer]').forEach(button => {
+        button.addEventListener('click', () => {
+          document.querySelectorAll('[data-layer]').forEach(item => item.classList.remove('active'));
+          button.classList.add('active');
+          const heat = document.querySelector('[data-map-layer="heat"]');
+          const route = document.querySelector('[data-map-layer="route"]');
+          heat.style.opacity = button.dataset.layer === 'route' ? '.16' : '1';
+          route.style.opacity = button.dataset.layer === 'heat' ? '.48' : '1';
+          notify('Capa: ' + button.textContent);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

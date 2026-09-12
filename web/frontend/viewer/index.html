@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d1511">
+  <title>Panel · Maní Rover</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><div class="logo" aria-hidden="true">🥜</div><div><h1>Maní Rover</h1><p class="subtitle">Detección de pérdidas en superficie</p></div></div>
+      <div class="status-group"><span class="pill" id="viewer-connection"><span class="dot"></span><span>Conectando</span></span><span class="pill">Establecimiento La Esperanza</span></div>
+    </header>
+    <section class="viewer-grid">
+      <div>
+        <section class="panel video-panel">
+          <div class="panel-head">
+            <h2><span class="live">EN VIVO</span>Visión procesada</h2>
+            <div class="video-tools">
+              <span class="eyebrow" id="frame-info">Esperando imagen</span>
+              <button class="fullscreen-button" id="fullscreen-button" type="button" aria-label="Ver cámara en pantalla completa" title="Pantalla completa">
+                <span aria-hidden="true">⛶</span><span class="fullscreen-text">Pantalla completa</span>
+              </button>
+            </div>
+          </div>
+          <div class="video-stage" id="video-stage">
+            <img id="processed-frame" alt="Video procesado con detecciones" hidden>
+            <div class="video-placeholder" id="video-placeholder"><strong>Esperando cámara</strong><small>Los frames procesados aparecerán automáticamente.</small></div>
+            <span class="frame-label" id="frame-label">FRAME —</span>
+          </div>
+        </section>
+        <section class="metrics" aria-label="Métricas en vivo">
+          <article class="metric"><div class="eyebrow">Vainas visibles</div><div class="value highlight" id="metric-detections">—</div></article>
+          <article class="metric"><div class="eyebrow">Pérdida estimada</div><div class="value" id="metric-loss">—<span class="unit">kg/ha</span></div></article>
+          <article class="metric"><div class="eyebrow">Procesamiento</div><div class="value" id="metric-fps">—<span class="unit">FPS</span></div></article>
+          <article class="metric"><div class="eyebrow">Latencia</div><div class="value" id="metric-latency">—<span class="unit">ms</span></div></article>
+        </section>
+      </div>
+      <aside class="sidebar">
+        <section class="panel operation">
+          <div class="section-title"><h2>Operación</h2><span class="small-status" id="task-status">En espera</span></div>
+          <div class="task-summary"><div class="task-name"><span><strong>Relevamiento Lote Norte</strong><small>Sector A · 1,4 ha</small></span><span class="task-tag" id="task-tag">LISTA</span></div><div class="progress"><span id="task-progress"></span></div><div class="task-detail"><span id="progress-label">0% completado</span><span>~18 min</span></div></div>
+          <div class="actions"><button class="action primary" id="start-task">▶ Comenzar tarea</button><button class="action danger" id="stop-task" disabled>■ Detener tarea</button><button class="action" id="schedule-task">◷ Programar tarea</button></div>
+        </section>
+        <section class="panel connections">
+          <div class="section-title"><h2>Conexiones</h2></div>
+          <div class="connection"><span class="connection-icon">◉</span><span><strong>Cámara</strong><small>Celular · WebSocket</small></span><span class="ok" id="camera-state">ESPERA</span></div>
+          <div class="connection"><span class="connection-icon">◈</span><span><strong>Modelo YOLO</strong><small>Backend local</small></span><span class="ok" id="model-state">ESPERA</span></div>
+          <div class="connection"><span class="connection-icon">◇</span><span><strong>Telemetría</strong><small>Métricas sincronizadas</small></span><span class="ok" id="telemetry-state">ESPERA</span></div>
+        </section>
+        <aside class="panel demo-note"><strong>Analítica preparada para YOLO.</strong> Hasta conectar la inferencia, se puede usar <code>?mock_metrics=1</code> para mostrar métricas simuladas sobre la cámara real.</aside>
+      </aside>
+    </section>
+    <section class="panel map-panel">
+      <div class="map-head"><div><h2>Mapa de pérdidas · Lote Norte</h2><p>Detecciones acumuladas y georreferenciadas durante la tarea.</p></div><div class="segmented"><button class="active" data-layer="heat">Calor</button><button data-layer="route">Recorrido</button><button data-layer="satellite">Satelital</button></div></div>
+      <div class="map">
+        <svg viewBox="0 0 900 330" role="img" aria-label="Mapa conceptual de pérdidas del lote">
+          <defs><pattern id="rows" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(18)"><rect width="22" height="22" fill="#405137"/><rect width="7" height="22" fill="#35462f"/></pattern><radialGradient id="hot"><stop offset="0" stop-color="#ff554d" stop-opacity=".9"/><stop offset=".5" stop-color="#ffb445" stop-opacity=".65"/><stop offset="1" stop-color="#c9f269" stop-opacity="0"/></radialGradient></defs>
+          <rect width="900" height="330" fill="url(#rows)"/><path d="M-20 280C170 245 250 263 390 224S680 140 930 170" fill="none" stroke="#a89b78" stroke-width="18" opacity=".7"/><path d="M75 52L810 28L838 276L112 306Z" fill="none" stroke="#dbe9c5" stroke-width="2" opacity=".72"/>
+          <g class="map-layer" data-map-content="heat"><ellipse cx="285" cy="130" rx="130" ry="90" fill="url(#hot)"/><ellipse cx="635" cy="205" rx="115" ry="82" fill="url(#hot)"/></g>
+          <path class="map-layer" data-map-content="route" d="M135 278C180 245 175 88 230 76S320 260 375 246 410 62 470 58 545 235 600 222 628 43 695 44 755 88 790 238" fill="none" stroke="#c9f269" stroke-width="4" stroke-dasharray="8 8"/>
+          <circle id="robot-marker" cx="600" cy="222" r="10" fill="#c9f269" stroke="#122016" stroke-width="4"/><text x="128" y="80" fill="#f4f1e8" font-size="13" font-weight="800">SECTOR A</text>
+        </svg>
+        <div class="legend"><span>Baja</span><span class="gradient"></span><span>Alta</span></div>
+      </div>
+    </section>
+  </main>
+  <dialog id="schedule-dialog"><form class="modal" method="dialog"><h2>Programar tarea</h2><p>Configuración demostrativa del próximo relevamiento.</p><div class="fields"><label class="full">Nombre<input value="Relevamiento Lote Norte"></label><label>Fecha<input type="date" value="2026-09-13"></label><label>Hora<input type="time" value="09:00"></label></div><div class="modal-actions"><button class="action" value="cancel">Cancelar</button><button class="action primary" value="confirm" id="confirm-schedule">Programar</button></div></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="../assets/viewer.js"></script>
+</body>
+</html>

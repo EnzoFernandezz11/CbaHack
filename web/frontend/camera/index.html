@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1511">
+  <title>Cámara · Maní Rover</title>
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body>
+  <main class="camera-page">
+    <header class="topbar">
+      <div class="brand"><div class="logo" aria-hidden="true">🥜</div><div><h1>Cámara del robot</h1><p class="subtitle">Transmisión al modelo de detección</p></div></div>
+      <span class="pill" id="camera-connection"><span class="dot"></span><span>Sin iniciar</span></span>
+    </header>
+    <section class="capture-stage">
+      <video id="camera-preview" autoplay muted playsinline></video>
+      <canvas id="capture-canvas" class="sr-only"></canvas>
+      <div class="capture-overlay"><span class="capture-badge" id="capture-badge">CÁMARA APAGADA</span></div>
+    </section>
+    <section class="camera-controls">
+      <button class="action primary" id="toggle-camera" type="button">Iniciar transmisión</button>
+      <div class="camera-stats"><span><strong id="sent-fps">0,0</strong> FPS</span><span><strong id="sent-count">0</strong> frames</span><span id="queue-state">Cola libre</span></div>
+    </section>
+  </main>
+  <script type="module" src="../assets/camera.js"></script>
+</body>
+</html>

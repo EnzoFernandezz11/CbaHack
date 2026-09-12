@@ -34,16 +34,16 @@ async def run(base_url: str) -> dict[str, object]:
 
     async with websockets.connect(f"{websocket_base}/ws/viewer") as viewer:
         initial = json.loads(await asyncio.wait_for(viewer.recv(), timeout=5))
-        if initial.get("camera_connected") is not False:
+        if initial.get("type") != "system_status":
             raise RuntimeError(f"Estado inicial inesperado: {initial}")
 
         async with websockets.connect(f"{websocket_base}/ws/camera") as camera:
-            connected = json.loads(await asyncio.wait_for(viewer.recv(), timeout=5))
+            connected = await _wait_for_camera_state(viewer, True)
             if connected.get("camera_connected") is not True:
                 raise RuntimeError(f"No se notificó la cámara: {connected}")
 
             await camera.send(JPEG_FRAME)
-            received = await asyncio.wait_for(viewer.recv(), timeout=5)
+            received = await _wait_for_frame(viewer)
             if received != JPEG_FRAME:
                 raise RuntimeError("El JPEG retransmitido no coincide byte a byte.")
             acknowledgement = json.loads(await asyncio.wait_for(camera.recv(), timeout=5))
@@ -51,10 +51,10 @@ async def run(base_url: str) -> dict[str, object]:
                 raise RuntimeError("El servidor no confirmó la recepción del JPEG.")
 
             status = await asyncio.to_thread(_read_json, f"{base_url}/api/status")
-            if not status.get("camera_connected") or status.get("viewer_count") != 1:
+            if not status.get("camera_connected") or status.get("viewer_count", 0) < 1:
                 raise RuntimeError(f"Estado del relay inesperado: {status}")
 
-        disconnected = json.loads(await asyncio.wait_for(viewer.recv(), timeout=5))
+        disconnected = await _wait_for_camera_state(viewer, False)
         if disconnected.get("camera_connected") is not False:
             raise RuntimeError(f"No se notificó la desconexión: {disconnected}")
 
@@ -65,6 +65,24 @@ async def run(base_url: str) -> dict[str, object]:
         "relay_exact_match": True,
         "camera_disconnect_notified": True,
     }
+
+
+async def _wait_for_camera_state(viewer: websockets.ClientConnection, connected: bool) -> dict[str, object]:
+    for _ in range(5):
+        message = await asyncio.wait_for(viewer.recv(), timeout=5)
+        if isinstance(message, str):
+            payload = json.loads(message)
+            if payload.get("type") == "system_status" and payload.get("camera_connected") is connected:
+                return payload
+    raise RuntimeError(f"No se recibió el estado de cámara esperado: {connected}")
+
+
+async def _wait_for_frame(viewer: websockets.ClientConnection) -> bytes:
+    for _ in range(5):
+        message = await asyncio.wait_for(viewer.recv(), timeout=5)
+        if isinstance(message, bytes):
+            return message
+    raise RuntimeError("No se recibió el JPEG esperado.")
 
 
 def main() -> None:

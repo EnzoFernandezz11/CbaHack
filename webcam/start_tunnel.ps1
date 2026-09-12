@@ -10,6 +10,7 @@ $cloudflaredCommand = Get-Command cloudflared -ErrorAction SilentlyContinue
 $cloudflaredExecutable = if ($cloudflaredCommand) { $cloudflaredCommand.Source } else { $null }
 if (-not $cloudflaredExecutable) {
     $knownLocations = @(
+        (Join-Path $PSScriptRoot '.runtime-bin\cloudflared.exe'),
         (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\cloudflared.exe'),
         'C:\Program Files\cloudflared\cloudflared.exe',
         'C:\Program Files (x86)\cloudflared\cloudflared.exe'

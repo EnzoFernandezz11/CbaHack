@@ -1,6 +1,7 @@
 param(
     [string]$PythonCommand = 'python',
     [string]$VenvPath = '',
+    [switch]$Inference,
     [switch]$SkipTests
 )
 
@@ -11,7 +12,8 @@ $webRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 if ([string]::IsNullOrWhiteSpace($VenvPath)) {
     $VenvPath = Join-Path $webRoot '.venv'
 }
-$requirements = Join-Path $webRoot 'requirements.txt'
+$requirementsFile = if ($Inference) { 'requirements-inference.txt' } else { 'requirements.txt' }
+$requirements = Join-Path $webRoot $requirementsFile
 $tests = Join-Path $webRoot 'tests'
 $pytestConfig = Join-Path $webRoot 'pytest.ini'
 

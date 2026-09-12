@@ -2,8 +2,9 @@
 
 Este módulo implementa la primera etapa de la aplicación web: captura JPEG desde
 la cámara de un teléfono y muestra los frames en una computadora en tiempo real.
-Todavía no ejecuta YOLO; el backend utiliza un procesador `passthrough` que deja
-cada imagen sin modificar.
+Si se configura `WEB_MODEL_PATH`, el backend carga un detector YOLO al iniciar y
+dibuja sus cajas sobre cada imagen. Sin un checkpoint configurado, utiliza el
+procesador `passthrough` y deja cada imagen sin modificar.
 
 ## Requisitos
 
@@ -136,17 +137,30 @@ Uvicorn:
 .\webcam\.venv\Scripts\python.exe .\webcam\tests\live_smoke.py
 ```
 
-## Integración futura de YOLO
+## Inferencia YOLO
 
-`backend/frame_processor.py` define el punto de extensión. Actualmente:
+El checkpoint entrenado para vainas está incluido en el repositorio. Desde la
+raíz del proyecto, prepare el entorno y arranque el servidor en PowerShell:
+
+```powershell
+.\webcam\setup.ps1 -Inference
+$env:WEB_MODEL_PATH = 'cv\Models-Roboflow\yolo26m-peanut-own-finetune-v1\weights\best.pt'
+$env:WEB_MODEL_CONFIDENCE = '0.25'
+.\webcam\run.ps1
+```
+
+`setup.ps1 -Inference` instala `ultralytics`, `torch`, `numpy` y `opencv-python`
+junto con el relay. Para GPU, instale primero el PyTorch apropiado.
+Compruebe `http://localhost:8000/healthz`: `mode` debe ser `yolo`. El servidor
+falla al iniciar si el checkpoint indicado no existe o no es de detección.
+Sin `WEB_MODEL_PATH`, el flujo es:
 
 ```text
 JPEG recibido → PassthroughFrameProcessor → mismo JPEG
 ```
 
-La siguiente etapa podrá cargar una sola vez el modelo de `cv/`, ejecutar la
-inferencia y devolver un JPEG con bounding boxes sin cambiar el protocolo ni las
-páginas existentes.
+Con `WEB_MODEL_PATH`, el mismo protocolo entrega un JPEG con las bounding boxes
+dibujadas. La velocidad efectiva dependerá del modelo y del hardware disponible.
 
 ## Referencias
 

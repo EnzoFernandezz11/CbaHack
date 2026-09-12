@@ -9,7 +9,7 @@ El trabajo de entrenamiento se plantea en dos etapas:
 1. Entrenamiento inicial con datos públicos descargados de Internet.
 2. Fine-tuning de los modelos obtenidos con imágenes representativas del escenario real de la demo: celular y altura de montaje definitivos, tierra, rastrojo, iluminación y vainas utilizadas por el equipo.
 
-La arquitectura y variante exactas de YOLO, los hiperparámetros y los pesos de partida todavía están por definir.
+Para la primera implementación se utilizará YOLO26 de Ultralytics, con `yolo26n.pt` como valor inicial recomendado por su relación entre latencia y precisión. La variante, los hiperparámetros y los pesos de partida permanecerán configurables en el script.
 
 ## Dataset público inicial
 
@@ -83,6 +83,170 @@ No se declara un preprocesamiento adicional en el archivo exportado.
 - Durante el fine-tuning se deben incluir fondos difíciles y negativos: tierra sin vainas, rastrojo, piedras, hojas, cambios de luz, oclusiones y vainas parcialmente visibles.
 - Además de mAP, precision y recall, interesa medir falsos positivos, falsos negativos y latencia/FPS en la notebook que ejecutará el backend.
 
+## Plan de implementación del entrenamiento YOLO26
+
+Esta sección registra el diseño acordado para desarrollar posteriormente el pipeline. Los archivos mencionados todavía no forman parte de la implementación.
+
+### Configuración del experimento
+
+El script principal será `cv/scripts/train_yolo26.py` y tendrá al comienzo un bloque de configuración editable. Como mínimo expondrá:
+
+```python
+DATASET_PERCENT = 100.0
+
+TRAIN_RATIO = 0.70
+VAL_RATIO = 0.15
+TEST_RATIO = 0.15
+
+MODEL = "yolo26n.pt"
+EPOCHS = 100
+IMAGE_SIZE = 640
+GPU_BATCH_SIZE = -1
+CPU_BATCH_SIZE = 4
+PATIENCE = 20
+WORKERS = 4
+SEED = 42
+DEVICE = "auto"
+RUN_NAME = "yolo26n-peanut"
+RUN_TEST_EVALUATION = True
+```
+
+También podrán exponerse el optimizador, learning rate, caché, AMP, augmentations, reanudación desde checkpoint y otras opciones admitidas por Ultralytics. Antes de entrenar se validarán los tipos, rangos y compatibilidad de todos los valores.
+
+### Porcentaje configurable del dataset
+
+`DATASET_PERCENT` determinará qué porcentaje del dataset completo participará en una corrida. El subconjunto seleccionado pasará a considerarse el nuevo 100 % y recién entonces se calcularán las cantidades de `train`, `val` y `test` usando sus ratios configurados.
+
+Ejemplo:
+
+```text
+Dataset disponible: 500 imágenes
+DATASET_PERCENT:     50 %
+Nuevo total:         250 imágenes
+
+TRAIN_RATIO:         70 % -> 175 imágenes
+VAL_RATIO:           15 % -> 38 imágenes
+TEST_RATIO:          15 % -> 37 imágenes
+```
+
+Cuando haya fracciones, se utilizará una asignación determinista por restos mayores para que la suma de los tres splits coincida exactamente con el nuevo total. Con el dataset actual, `DATASET_PERCENT = 50` seleccionaría 294 de las 588 imágenes y produciría 206 imágenes de entrenamiento, 44 de validación y 44 de test.
+
+La selección deberá cumplir estas reglas:
+
+- Aceptar porcentajes mayores que 0 y menores o iguales que 100.
+- Exigir que `TRAIN_RATIO + VAL_RATIO + TEST_RATIO == 1`.
+- Conservar la separación por captura ya definida; ninguna captura podrá cruzar de un split a otro.
+- Seleccionar dentro de cada split de manera reproducible usando `SEED`.
+- Procurar representación de todas las capturas disponibles y balancear la densidad de anotaciones.
+- Rechazar configuraciones tan pequeñas que dejen algún split vacío y advertir cuando `val` o `test` resulten insuficientes para una métrica estable.
+- Usar todas las imágenes sin muestreo cuando `DATASET_PERCENT = 100`.
+
+Cada subconjunto generará un `subset_manifest.json` con la configuración y los nombres exactos de las imágenes. Esto permitirá repetir el experimento en otra computadora y comparar corridas sin ambigüedad.
+
+### Preparación COCO a YOLO
+
+Las anotaciones actuales están en COCO JSON. Antes del entrenamiento, `cv/scripts/prepare_yolo_dataset.py` generará automáticamente una vista en formato YOLO solo con las imágenes seleccionadas:
+
+```text
+cv/Datasets/yolo26_working/
+|-- images/
+|   |-- train/
+|   |-- val/
+|   `-- test/
+|-- labels/
+|   |-- train/
+|   |-- val/
+|   `-- test/
+|-- data.yaml
+`-- subset_manifest.json
+```
+
+La conversión mapeará la categoría COCO `pod`, ID 1, a la clase YOLO `0`, normalizará las bounding boxes y validará archivos faltantes, coordenadas fuera de rango, clases inesperadas y etiquetas inconsistentes. Las imágenes se reutilizarán mediante hardlinks cuando el sistema lo permita.
+
+### Selección automática de CPU o GPU
+
+Con `DEVICE = "auto"`, el pipeline consultará PyTorch y utilizará la primera GPU CUDA disponible; si no existe una GPU compatible, continuará en CPU. El script mostrará el dispositivo elegido, nombre y memoria de GPU cuando corresponda, versiones de CUDA, PyTorch y Ultralytics, y los parámetros efectivos de batch y workers.
+
+Se podrá forzar `DEVICE = "cpu"` o una GPU concreta. En Windows, el punto de entrada quedará protegido con `if __name__ == "__main__":` para permitir el uso seguro de multiprocessing.
+
+### Logging y trazabilidad
+
+El pipeline será deliberadamente verboso. Mostrará y guardará:
+
+- Inicio y fin de cada etapa.
+- Entorno de ejecución y hardware detectado.
+- Configuración solicitada y configuración efectiva.
+- Estadísticas del dataset completo y del subconjunto.
+- Progreso y duración del entrenamiento.
+- Rutas de checkpoints y artefactos.
+- Métricas finales o errores con contexto suficiente para diagnosticarlos.
+
+Además de la salida de Ultralytics, cada corrida tendrá un log persistente y un resumen serializado del entorno y de los parámetros utilizados.
+
+### Resultados y métricas
+
+Todos los artefactos se guardarán bajo `cv/Models-Roboflow/`, con un subdirectorio independiente por corrida:
+
+```text
+cv/Models-Roboflow/<nombre-de-corrida>/
+|-- weights/
+|   |-- best.pt
+|   `-- last.pt
+|-- args.yaml
+|-- results.csv
+|-- training.log
+|-- subset_manifest.json
+|-- environment.json
+|-- test_metrics.json
+`-- run_summary.json
+```
+
+La validación durante el entrenamiento utilizará `val`. Al finalizar se cargará `best.pt` y, cuando `RUN_TEST_EVALUATION = True`, se calcularán sobre `test` precision, recall, mAP50 y mAP50-95, además de la latencia de inferencia disponible. Las curvas, matriz de confusión y demás gráficos producidos por Ultralytics quedarán dentro de la misma corrida.
+
+El conjunto `test` no debe utilizarse para elegir hiperparámetros. Para comparaciones exploratorias se priorizarán las métricas de `val`, reservando la evaluación de `test` para el modelo candidato final.
+
+### Dependencias y ejecución en otra computadora
+
+La implementación incorporará los siguientes archivos de soporte:
+
+```text
+cv/
+|-- requirements-yolo26.txt
+|-- setup_training.ps1
+|-- README_entrenamiento.md
+`-- scripts/
+    |-- check_training_environment.py
+    |-- prepare_yolo_dataset.py
+    `-- train_yolo26.py
+```
+
+- `requirements-yolo26.txt` declarará versiones compatibles y verificadas de las dependencias Python.
+- `setup_training.ps1` creará un entorno virtual e instalará dependencias para CPU o CUDA mediante un parámetro explícito, por ejemplo `-Backend cpu` o `-Backend cuda`.
+- `README_entrenamiento.md` documentará comandos equivalentes para Windows y Linux, instalación, configuración y ejecución.
+- `check_training_environment.py` mostrará Python, sistema operativo, PyTorch, Ultralytics, CUDA, GPU, memoria disponible y dependencias faltantes. Si encuentra un problema, imprimirá el comando recomendado para corregirlo.
+- Cada corrida guardará las versiones realmente utilizadas para que el resultado sea auditable aunque el entrenamiento se ejecute en otra máquina.
+
+La instalación de PyTorch deberá distinguir CPU de CUDA, porque sus paquetes pueden requerir índices diferentes. El instalador comprobará la presencia de una GPU NVIDIA antes de seleccionar la variante CUDA y fallará con un mensaje claro si el backend solicitado no está disponible.
+
+### Verificación prevista
+
+Antes de considerar completa la implementación se comprobará:
+
+1. Conversión correcta de COCO a YOLO y mapeo exclusivo de `pod` a la clase 0.
+2. Exactitud del porcentaje solicitado y de las cantidades finales por split.
+3. Ausencia de imágenes repetidas o capturas compartidas entre splits.
+4. Repetibilidad de la selección usando la misma semilla.
+5. Detección correcta de CPU y CUDA.
+6. Creación de `Models-Roboflow` y de todos los artefactos esperados.
+7. Ejecución de un smoke test corto antes de lanzar un entrenamiento completo.
+8. Extracción y persistencia de las métricas del mejor checkpoint.
+
+Referencias técnicas previstas:
+
+- <https://docs.ultralytics.com/models/yolo26/>
+- <https://docs.ultralytics.com/modes/train/>
+- <https://docs.ultralytics.com/tasks/detect/>
+
 ## Flujo previsto
 
 ```text
@@ -132,4 +296,4 @@ Cuando comiencen los experimentos se deberá agregar:
 }
 ```
 
-Última verificación de la ficha pública y de la descarga local: 2026-09-12.
+Última verificación de la ficha pública, del dataset reorganizado y del plan de entrenamiento: 2026-09-12.

@@ -85,7 +85,7 @@ Haz la primera prueba con las ruedas levantadas del suelo y el chasis sujeto par
 2. Desde el teléfono u ordenador, busca la red Wi‑Fi **`Robot-ESP32`** y conéctate con la clave **`robot-esp32`**.
 3. Abre `http://192.168.4.1` en el navegador. Si el teléfono avisa que la red no tiene Internet, conserva la conexión a esa red.
 4. Comprueba que el control está en reposo y que al soltarlo se ordena detener los motores.
-5. Enciende la alimentación de los motores y prueba ambos lados con pulsaciones muy breves de avance y giro. El firmware usa un límite conservador de `PWM_DUTY = 140` sobre 255 (aproximadamente 55 %); aumenta ese valor únicamente después de comprobar el comportamiento y la temperatura de los motores y del L298N.
+5. Enciende la alimentación de los motores y prueba ambos lados con pulsaciones muy breves de avance y giro. Durante el diagnóstico, el firmware usa `PWM_DUTY = 255` sobre 255 (100 %, sin limitación por software). Mantén las ruedas levantadas y vigila la temperatura de los motores y del L298N.
 6. Cuando cada lado responda correctamente, baja las ruedas al suelo y prueba a muy baja velocidad en un área despejada.
 
 El orden recomendado para apagar es el inverso: detén el robot desde la página, apaga o desconecta el pack de motores y luego desconecta el powerbank. Si el control o el Wi‑Fi se pierde, corta primero la alimentación de motores.
@@ -101,6 +101,18 @@ El sentido real depende de cómo estén montados los motores y de la polaridad d
 - Como alternativa, con todo apagado, intercambia los dos cables de ese motor en su pareja OUT. No intercambies cables con el circuito energizado.
 
 Para limitar la velocidad, reduce `PWM_DUTY` en el sketch. Con los jumpers ENA y ENB quitados, el duty se aplica a los pines GPIO25 y GPIO32. Un duty alto puede hacer que el robot arranque bruscamente y aumenta el consumo; ajusta en pasos pequeños.
+
+### Autoprueba sin celular
+
+El diagnóstico temporal se activa con `MOTOR_SELF_TEST_ENABLED = true`. Cada vez
+que arranca el ESP32 espera 5 segundos y ejecuta una sola vez: avance, retroceso,
+giro izquierdo y giro derecho. Cada movimiento dura 1 segundo, tiene una pausa
+de 700 ms y usa `PWM_DUTY = 255` (100 %). La secuencia se informa por el
+monitor serie a 115200 baudios.
+
+Durante esta prueba las ruedas deben quedar levantadas. Al terminar el diagnóstico,
+cambia `MOTOR_SELF_TEST_ENABLED` a `false` para impedir movimientos automáticos en
+los siguientes arranques.
 
 ## Diagnóstico
 

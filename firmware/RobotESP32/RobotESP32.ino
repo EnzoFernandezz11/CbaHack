@@ -17,12 +17,19 @@ constexpr bool INVERT_RIGHT = false;
 
 constexpr uint32_t PWM_FREQUENCY = 5000;
 constexpr uint8_t PWM_RESOLUTION = 8;
-// Limite conservador: 140/255 equivale aproximadamente al 55 % de potencia.
-constexpr uint8_t PWM_DUTY = 140;
+// Potencia maxima para diagnostico: 255/255 equivale al 100 % del PWM.
+constexpr uint8_t PWM_DUTY = 255;
 constexpr uint8_t PWM_CHANNEL_LEFT = 0;
 constexpr uint8_t PWM_CHANNEL_RIGHT = 1;
 constexpr uint32_t DIRECTION_SETTLE_MS = 30;
 constexpr uint32_t COMMAND_WATCHDOG_MS = 500;
+
+// Diagnostico temporal: ejecuta una secuencia de movimientos una vez al arrancar.
+// Cambiar a false cuando termine la prueba para evitar movimientos automaticos.
+constexpr bool MOTOR_SELF_TEST_ENABLED = true;
+constexpr uint32_t SELF_TEST_WARNING_MS = 5000;
+constexpr uint32_t SELF_TEST_MOVE_MS = 1000;
+constexpr uint32_t SELF_TEST_PAUSE_MS = 700;
 
 const char AP_SSID[] = "Robot-ESP32";
 const char AP_PASSWORD[] = "robot-esp32";
@@ -266,6 +273,36 @@ void applyMotion(Motion requested) {
   currentMotion = requested;
 }
 
+void runMotorSelfTest() {
+  if (!MOTOR_SELF_TEST_ENABLED) return;
+
+  Serial.println("[TEST] Autoprueba de motores habilitada.");
+  Serial.println("[TEST] Levante las ruedas: la prueba comienza en 5 segundos.");
+  delay(SELF_TEST_WARNING_MS);
+
+  struct TestStep {
+    Motion motion;
+    const char *name;
+  };
+
+  const TestStep steps[] = {
+      {MOTION_FORWARD, "AVANCE"},
+      {MOTION_BACKWARD, "RETROCESO"},
+      {MOTION_LEFT, "GIRO IZQUIERDO"},
+      {MOTION_RIGHT, "GIRO DERECHO"},
+  };
+
+  for (const TestStep &step : steps) {
+    Serial.printf("[TEST] %s\n", step.name);
+    applyMotion(step.motion);
+    delay(SELF_TEST_MOVE_MS);
+    applyMotion(MOTION_STOP);
+    delay(SELF_TEST_PAUSE_MS);
+  }
+
+  Serial.println("[TEST] Autoprueba finalizada; motores detenidos.");
+}
+
 void requestMotion(Motion requested) {
   const uint32_t now = millis();
   portENTER_CRITICAL(&motionMux);
@@ -374,6 +411,8 @@ void setup() {
     Serial.println("ERROR: no se pudo iniciar el PWM; motores bloqueados.");
     while (true) delay(1000);
   }
+
+  runMotorSelfTest();
 
   WiFi.mode(WIFI_AP);
   if (!WiFi.softAP(AP_SSID, AP_PASSWORD, 1, false, 1)) {

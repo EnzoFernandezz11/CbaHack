@@ -37,8 +37,8 @@ no están cruzados.
 
 Para que el ESP32 controle la velocidad por PWM, hay que retirar los jumpers de
 `ENA` y `ENB` del módulo L298N antes de conectar los GPIO 25 y 32.
-El firmware limita actualmente ambos motores a `PWM_DUTY = 140` sobre 255,
-aproximadamente un 55 % del ciclo de trabajo máximo.
+Para la autoprueba, el firmware usa `PWM_DUTY = 255` sobre 255: salida PWM al
+100 %, sin limitación de velocidad por software.
 
 ## L298N a motores
 

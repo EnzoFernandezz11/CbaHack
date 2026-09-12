@@ -1,7 +1,27 @@
 # Pinout del robot ESP32
 
-Este documento corresponde al cableado definido en `src/RobotESP32.ino` para un
+Este documento corresponde al cableado definido en `RobotESP32.ino` para un
 ESP32 clásico y un controlador de motores L298N.
+
+## Cableado físico actual del L298N
+
+Esta es la conexión montada y confirmada. `IN3` e `IN4` ya quedaron corregidos:
+
+| Terminal del L298N | Está conectado a |
+|---|---|
+| ENA | GPIO 25 del ESP32 |
+| IN1 | GPIO 26 del ESP32 |
+| IN2 | GPIO 27 del ESP32 |
+| IN3 | GPIO 33 del ESP32 |
+| IN4 | GPIO 18 del ESP32 |
+| ENB | GPIO 32 del ESP32 |
+| OUT1 y OUT2 | Motor izquierdo |
+| OUT3 y OUT4 | Motor derecho |
+| GND | GND del ESP32 y negativo de la fuente de motores |
+| 12V/VIN/Vs | Positivo de la fuente de motores |
+
+Importante: GPIO 33 está conectado a `IN3` y GPIO 18 está conectado a `IN4`;
+no están cruzados.
 
 ## ESP32 a L298N
 
@@ -17,6 +37,8 @@ ESP32 clásico y un controlador de motores L298N.
 
 Para que el ESP32 controle la velocidad por PWM, hay que retirar los jumpers de
 `ENA` y `ENB` del módulo L298N antes de conectar los GPIO 25 y 32.
+El firmware limita actualmente ambos motores a `PWM_DUTY = 140` sobre 255,
+aproximadamente un 55 % del ciclo de trabajo máximo.
 
 ## L298N a motores
 
@@ -68,4 +90,3 @@ Una vez iniciado el ESP32:
 - Red: `Robot-ESP32`
 - Contraseña: `robot-esp32`
 - Panel de control: <http://192.168.4.1>
-

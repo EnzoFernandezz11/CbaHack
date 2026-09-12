@@ -17,7 +17,8 @@ constexpr bool INVERT_RIGHT = false;
 
 constexpr uint32_t PWM_FREQUENCY = 5000;
 constexpr uint8_t PWM_RESOLUTION = 8;
-constexpr uint8_t PWM_DUTY = 180;
+// Limite conservador: 140/255 equivale aproximadamente al 55 % de potencia.
+constexpr uint8_t PWM_DUTY = 140;
 constexpr uint8_t PWM_CHANNEL_LEFT = 0;
 constexpr uint8_t PWM_CHANNEL_RIGHT = 1;
 constexpr uint32_t DIRECTION_SETTLE_MS = 30;

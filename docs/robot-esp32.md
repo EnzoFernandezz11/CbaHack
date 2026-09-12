@@ -85,7 +85,7 @@ Haz la primera prueba con las ruedas levantadas del suelo y el chasis sujeto par
 2. Desde el teléfono u ordenador, busca la red Wi‑Fi **`Robot-ESP32`** y conéctate con la clave **`robot-esp32`**.
 3. Abre `http://192.168.4.1` en el navegador. Si el teléfono avisa que la red no tiene Internet, conserva la conexión a esa red.
 4. Comprueba que el control está en reposo y que al soltarlo se ordena detener los motores.
-5. Enciende el pack de 6 AA NiMH y prueba ambos lados con pulsaciones muy breves de avance y giro. El firmware usa inicialmente `PWM_DUTY = 180` sobre 255; si el movimiento resulta brusco, baja ese valor antes de probar en el suelo.
+5. Enciende la alimentación de los motores y prueba ambos lados con pulsaciones muy breves de avance y giro. El firmware usa un límite conservador de `PWM_DUTY = 140` sobre 255 (aproximadamente 55 %); aumenta ese valor únicamente después de comprobar el comportamiento y la temperatura de los motores y del L298N.
 6. Cuando cada lado responda correctamente, baja las ruedas al suelo y prueba a muy baja velocidad en un área despejada.
 
 El orden recomendado para apagar es el inverso: detén el robot desde la página, apaga o desconecta el pack de motores y luego desconecta el powerbank. Si el control o el Wi‑Fi se pierde, corta primero la alimentación de motores.

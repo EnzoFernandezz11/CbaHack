@@ -47,6 +47,10 @@ class PreparedDataset:
     split_counts: dict[str, int]
 
 
+class EmptyBoundingBoxError(ValueError):
+    """A COCO box that has no usable area after validation or clipping."""
+
+
 def _capture_name(file_name: str) -> str:
     match = CAPTURE_PATTERN.match(Path(file_name).name)
     if not match:
@@ -262,7 +266,9 @@ def _annotation_to_yolo(
     if not all(math.isfinite(value) for value in (x, y, width, height)):
         raise ValueError(f"Bounding box no finita en la anotación {annotation.get('id')}.")
     if width <= 0 or height <= 0:
-        raise ValueError(f"Bounding box sin área en la anotación {annotation.get('id')}.")
+        raise EmptyBoundingBoxError(
+            f"Bounding box sin área en la anotación {annotation.get('id')}."
+        )
 
     x1 = max(0.0, x)
     y1 = max(0.0, y)
@@ -273,7 +279,7 @@ def _annotation_to_yolo(
         for left, right in ((x1, x), (y1, y), (x2, x + width), (y2, y + height))
     )
     if x2 <= x1 or y2 <= y1:
-        raise ValueError(
+        raise EmptyBoundingBoxError(
             f"Bounding box fuera de la imagen en la anotación {annotation.get('id')}."
         )
 
@@ -429,6 +435,7 @@ def prepare_yolo_dataset(
     temporary = Path(tempfile.mkdtemp(prefix=f".{directory_name}_", dir=output_root))
     materialization: dict[str, int] = defaultdict(int)
     clipped_boxes = 0
+    skipped_invalid_annotations: list[dict[str, Any]] = []
     manifest_splits: dict[str, Any] = {}
     try:
         for split in SPLITS:
@@ -445,7 +452,25 @@ def prepare_yolo_dataset(
                 for annotation in image.annotations:
                     if int(annotation["category_id"]) != pod_category_id:
                         raise ValueError("Se encontró una clase no esperada durante la conversión.")
-                    line, clipped = _annotation_to_yolo(annotation, image)
+                    try:
+                        line, clipped = _annotation_to_yolo(annotation, image)
+                    except EmptyBoundingBoxError as error:
+                        skipped_invalid_annotations.append(
+                            {
+                                "split": split,
+                                "annotation_id": annotation.get("id"),
+                                "image": image.file_name,
+                                "bbox": annotation.get("bbox"),
+                                "reason": str(error),
+                            }
+                        )
+                        logger.warning(
+                            "Omitiendo anotación COCO inválida %s en %s: %s",
+                            annotation.get("id"),
+                            image.file_name,
+                            error,
+                        )
+                        continue
                     label_lines.append(line)
                     clipped_boxes += int(clipped)
                 annotation_count += len(label_lines)
@@ -487,6 +512,7 @@ def prepare_yolo_dataset(
             "class_names": {"0": "pod"},
             "materialization": dict(materialization),
             "clipped_boxes": clipped_boxes,
+            "skipped_invalid_annotations": skipped_invalid_annotations,
             "splits": manifest_splits,
         }
         (temporary / "subset_manifest.json").write_text(
@@ -502,6 +528,10 @@ def prepare_yolo_dataset(
     prepared = _validate_existing_output(target, selection_payload)
     logger.info("Materialización: %s", dict(materialization))
     logger.info("Bounding boxes recortadas a los límites de imagen: %d", clipped_boxes)
+    logger.info(
+        "Anotaciones inválidas omitidas y registradas: %d",
+        len(skipped_invalid_annotations),
+    )
     logger.info("Dataset YOLO listo: %s", target)
     logger.info("Archivo de configuración: %s", prepared.data_yaml)
     logger.info("=" * 72)

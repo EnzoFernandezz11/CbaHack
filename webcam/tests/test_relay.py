@@ -112,6 +112,8 @@ async def _relay_frame(server_url: str) -> None:
 
             await camera.send(JPEG_FRAME)
             assert await asyncio.wait_for(viewer.recv(), timeout=3) == JPEG_FRAME
+            acknowledgement = json.loads(await asyncio.wait_for(camera.recv(), timeout=3))
+            assert acknowledgement == {"type": "frame_ack"}
 
             _, _, status_body = await asyncio.to_thread(_get, f"{server_url}/api/status")
             status = json.loads(status_body)

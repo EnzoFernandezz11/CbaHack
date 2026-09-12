@@ -2,7 +2,7 @@
 
 const preview = document.querySelector("#cameraPreview");
 const canvas = document.querySelector("#captureCanvas");
-const context = canvas.getContext("2d", { alpha: false });
+const context = canvas.getContext("2d", { alpha: false, desynchronized: true });
 const placeholder = document.querySelector("#cameraPlaceholder");
 const startButton = document.querySelector("#startButton");
 const stopButton = document.querySelector("#stopButton");
@@ -19,15 +19,17 @@ const sentFrames = document.querySelector("#sentFrames");
 const frameResolution = document.querySelector("#frameResolution");
 const bufferedBytes = document.querySelector("#bufferedBytes");
 
-const maximumBufferedBytes = 1_500_000;
 let mediaStream = null;
 let socket = null;
 let transmitting = false;
 let encodingFrame = false;
+let inFlightFrames = 0;
+const maximumInFlightFrames = 2;
 let captureTimer = null;
 let reconnectTimer = null;
 let totalFrames = 0;
 let framesThisSecond = 0;
+let lastCaptureAt = 0;
 
 function websocketUrl(path) {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -69,8 +71,10 @@ function connectSocket() {
 
   currentSocket.addEventListener("open", () => {
     if (socket !== currentSocket) return;
+    inFlightFrames = 0;
     setStatus("Transmitiendo", "online");
     clearError();
+    scheduleCapture(0);
   });
 
   currentSocket.addEventListener("message", (event) => {
@@ -78,6 +82,10 @@ function connectSocket() {
     try {
       const message = JSON.parse(event.data);
       if (message.type === "error") showError(message.message);
+      if (message.type === "frame_ack") {
+        inFlightFrames = Math.max(0, inFlightFrames - 1);
+        scheduleCapture();
+      }
     } catch {
       // Los mensajes no JSON no forman parte del protocolo actual.
     }
@@ -85,6 +93,7 @@ function connectSocket() {
 
   currentSocket.addEventListener("close", (event) => {
     if (socket === currentSocket) socket = null;
+    inFlightFrames = 0;
     if (!transmitting) return;
     setStatus("Reconectando…", "warning");
     if (event.code === 1008) {
@@ -103,27 +112,34 @@ function targetInterval() {
   return 1000 / Number(fpsSetting.value);
 }
 
-function scheduleCapture() {
+function scheduleCapture(delay) {
   window.clearTimeout(captureTimer);
-  if (transmitting) captureTimer = window.setTimeout(captureFrame, targetInterval());
+  if (!transmitting) return;
+  const elapsed = performance.now() - lastCaptureAt;
+  const nextDelay = delay ?? Math.max(0, targetInterval() - elapsed);
+  captureTimer = window.setTimeout(captureFrame, nextDelay);
 }
 
 function captureFrame() {
   if (!transmitting) return;
-  scheduleCapture();
 
   if (
     encodingFrame ||
+    inFlightFrames >= maximumInFlightFrames ||
     preview.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
     socket?.readyState !== WebSocket.OPEN ||
-    socket.bufferedAmount > maximumBufferedBytes
+    socket.bufferedAmount > 0
   ) {
+    scheduleCapture(Math.min(50, targetInterval()));
     return;
   }
 
   const sourceWidth = preview.videoWidth;
   const sourceHeight = preview.videoHeight;
-  if (!sourceWidth || !sourceHeight) return;
+  if (!sourceWidth || !sourceHeight) {
+    scheduleCapture(Math.min(50, targetInterval()));
+    return;
+  }
 
   const requestedWidth = Number(widthSetting.value);
   const outputWidth = Math.min(sourceWidth, requestedWidth);
@@ -135,16 +151,32 @@ function captureFrame() {
   }
 
   context.drawImage(preview, 0, 0, outputWidth, outputHeight);
+  lastCaptureAt = performance.now();
   encodingFrame = true;
   canvas.toBlob(
     (blob) => {
       encodingFrame = false;
-      if (!blob || !transmitting || socket?.readyState !== WebSocket.OPEN) return;
-      if (socket.bufferedAmount > maximumBufferedBytes) return;
-      socket.send(blob);
+      if (!blob || !transmitting || socket?.readyState !== WebSocket.OPEN) {
+        scheduleCapture();
+        return;
+      }
+      if (socket.bufferedAmount > 0) {
+        scheduleCapture(Math.min(50, targetInterval()));
+        return;
+      }
+      inFlightFrames += 1;
+      try {
+        socket.send(blob);
+      } catch (error) {
+        inFlightFrames = Math.max(0, inFlightFrames - 1);
+        showError(`No se pudo enviar el frame: ${error?.message ?? error}`);
+        scheduleCapture();
+        return;
+      }
       totalFrames += 1;
       framesThisSecond += 1;
       sentFrames.textContent = String(totalFrames);
+      scheduleCapture();
     },
     "image/jpeg",
     Number(qualitySetting.value) / 100,
@@ -165,12 +197,15 @@ async function startTransmission() {
   startButton.disabled = true;
   setStatus("Solicitando cámara…", "warning");
   try {
+    const requestedWidth = Number(widthSetting.value);
+    const requestedFps = Number(fpsSetting.value);
     mediaStream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
         facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        width: { ideal: requestedWidth },
+        height: { ideal: Math.round(requestedWidth * 9 / 16) },
+        frameRate: { ideal: requestedFps, max: Math.max(requestedFps, 15) },
       },
     });
     preview.srcObject = mediaStream;
@@ -181,7 +216,6 @@ async function startTransmission() {
     fpsSetting.disabled = true;
     widthSetting.disabled = true;
     connectSocket();
-    scheduleCapture();
   } catch (error) {
     startButton.disabled = false;
     setStatus("No se pudo iniciar", "offline");
@@ -196,6 +230,8 @@ async function startTransmission() {
 function stopTransmission() {
   transmitting = false;
   encodingFrame = false;
+  inFlightFrames = 0;
+  lastCaptureAt = 0;
   window.clearTimeout(captureTimer);
   window.clearTimeout(reconnectTimer);
   const closingSocket = socket;

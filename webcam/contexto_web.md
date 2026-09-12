@@ -70,14 +70,14 @@ ejecutarse con un solo worker. `run.ps1` ya fuerza `--workers 1`.
 - Preferencia por la cámara trasera (`facingMode: environment`).
 - Preview local del video.
 - Captura mediante `canvas` y codificación JPEG.
-- FPS seleccionable: 5, 8 o 10.
+- FPS seleccionable: 5, 8, 10, 12 o 15; 12 FPS iniciales.
 - Ancho máximo seleccionable: 480, 640 o 960 píxeles.
-- Calidad JPEG configurable entre 40 % y 90 %, con 70 % inicial.
+- Calidad JPEG configurable entre 40 % y 90 %, con 60 % inicial.
 - Indicadores de estado, FPS, frames, resolución y bytes pendientes.
 - Reconexión automática del WebSocket si se interrumpe.
 - Detención de tracks de cámara y cierre correcto al abandonar la página.
-- Control de backpressure: no se envían nuevos frames si el buffer del WebSocket
-  supera 1.500.000 bytes.
+- Control de backpressure: como máximo hay dos frames sin confirmar y no se
+  agrega otro mientras el buffer del WebSocket contenga datos.
 
 #### `/viewer`
 
@@ -86,6 +86,7 @@ ejecutarse con un solo worker. `run.ps1` ya fuerza `--workers 1`.
 - Conexión automática al WebSocket `/ws/viewer`.
 - Reconexión con espera incremental de 1 a 5 segundos.
 - Recepción de JPEG binario y actualización de la imagen mostrada.
+- Descarte del JPEG pendiente anterior si la decodificación queda atrasada.
 - Liberación de URLs de objetos anteriores para evitar fugas de memoria.
 - Indicadores de servidor, cámara conectada, FPS recibidos, frames, antigüedad
   del último frame y cantidad de viewers.
@@ -108,6 +109,8 @@ los estados de conexión, tarjetas de estadísticas, controles y placeholders.
 
 - Endpoint: `/ws/camera`.
 - Frames: mensajes binarios con contenido JPEG.
+- Por cada frame aceptado, el servidor responde `{"type":"frame_ack"}`. El
+  teléfono usa las confirmaciones para mantener una ventana máxima de dos.
 - Mensaje de texto opcional `ping`, respondido con JSON `pong`.
 - Un segundo emisor recibe un error `camera_already_connected` y cierre 1008.
 - Un frame mayor al límite recibe cierre 1009.
@@ -330,4 +333,3 @@ web/
 
 `.gitignore` excluye el entorno virtual, cachés de Python y cachés de pytest.
 Los archivos fuente, documentación y pruebas sí deben quedar versionados.
-

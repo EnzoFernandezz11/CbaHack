@@ -15,6 +15,9 @@ let socket = null;
 let reconnectTimer = null;
 let reconnectDelay = 1000;
 let objectUrl = null;
+let pendingFrame = null;
+let renderingFrame = false;
+let viewerClosing = false;
 let totalFrames = 0;
 let framesThisSecond = 0;
 let lastFrameAt = null;
@@ -39,23 +42,48 @@ function updateCameraState(connected) {
   }
 }
 
-function showFrame(blob) {
-  const nextUrl = URL.createObjectURL(blob);
-  const previousUrl = objectUrl;
-  objectUrl = nextUrl;
-  remoteFrame.addEventListener(
-    "load",
-    () => {
-      if (previousUrl) URL.revokeObjectURL(previousUrl);
-      placeholder.hidden = true;
-    },
-    { once: true },
-  );
-  remoteFrame.src = nextUrl;
+function waitForImage(url) {
+  return new Promise((resolve) => {
+    const finish = (loaded) => {
+      remoteFrame.removeEventListener("load", handleLoad);
+      remoteFrame.removeEventListener("error", handleError);
+      resolve(loaded);
+    };
+    const handleLoad = () => finish(true);
+    const handleError = () => finish(false);
+    remoteFrame.addEventListener("load", handleLoad);
+    remoteFrame.addEventListener("error", handleError);
+    remoteFrame.src = url;
+  });
+}
+
+async function renderLatestFrame() {
+  if (renderingFrame) return;
+  renderingFrame = true;
+  while (pendingFrame && !viewerClosing) {
+    const blob = pendingFrame;
+    pendingFrame = null;
+    const nextUrl = URL.createObjectURL(blob);
+    const loaded = await waitForImage(nextUrl);
+    if (!loaded) {
+      URL.revokeObjectURL(nextUrl);
+      continue;
+    }
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = nextUrl;
+    placeholder.hidden = true;
+  }
+  renderingFrame = false;
+}
+
+function queueFrame(blob) {
+  // Si la decodificación va atrasada, conservar únicamente el JPEG más nuevo.
+  pendingFrame = blob;
   totalFrames += 1;
   framesThisSecond += 1;
   lastFrameAt = performance.now();
   receivedFrames.textContent = String(totalFrames);
+  void renderLatestFrame();
 }
 
 function handleTextMessage(rawMessage) {
@@ -86,7 +114,7 @@ function connect() {
     if (typeof event.data === "string") {
       handleTextMessage(event.data);
     } else {
-      showFrame(event.data);
+      queueFrame(event.data);
     }
   });
 
@@ -135,6 +163,8 @@ window.setInterval(() => {
 
 window.setInterval(refreshStatus, 2000);
 window.addEventListener("pagehide", () => {
+  viewerClosing = true;
+  pendingFrame = null;
   window.clearTimeout(reconnectTimer);
   socket?.close(1000, "Viewer cerrado");
   if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -142,4 +172,3 @@ window.addEventListener("pagehide", () => {
 
 connect();
 refreshStatus();
-

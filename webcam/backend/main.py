@@ -108,6 +108,9 @@ async def camera_socket(websocket: WebSocket) -> None:
 
             processed = await processor.process(frame)
             await manager.publish_frame(processed)
+            # La confirmación limita la ventana del teléfono y evita que acumule
+            # segundos de JPEGs cuando la red o el proceso se atrasan.
+            await websocket.send_json({"type": "frame_ack"})
     except WebSocketDisconnect:
         pass
     except Exception:

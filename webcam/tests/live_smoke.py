@@ -46,6 +46,9 @@ async def run(base_url: str) -> dict[str, object]:
             received = await asyncio.wait_for(viewer.recv(), timeout=5)
             if received != JPEG_FRAME:
                 raise RuntimeError("El JPEG retransmitido no coincide byte a byte.")
+            acknowledgement = json.loads(await asyncio.wait_for(camera.recv(), timeout=5))
+            if acknowledgement != {"type": "frame_ack"}:
+                raise RuntimeError("El servidor no confirmó la recepción del JPEG.")
 
             status = await asyncio.to_thread(_read_json, f"{base_url}/api/status")
             if not status.get("camera_connected") or status.get("viewer_count") != 1:
@@ -73,4 +76,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

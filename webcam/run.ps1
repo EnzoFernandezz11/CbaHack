@@ -20,7 +20,8 @@ $uvicornArguments = @(
     '--app-dir', $webRoot,
     '--host', $ServerHost,
     '--port', $Port,
-    '--workers', '1'
+    '--workers', '1',
+    '--ws-per-message-deflate', 'false'
 )
 if ($Reload) {
     $uvicornArguments += '--reload'
@@ -30,4 +31,3 @@ Write-Host "Viewer local: http://localhost:$Port/viewer"
 Write-Host "Cámara local: http://localhost:$Port/camera"
 Write-Host 'Para un teléfono use HTTPS mediante .\web\start_tunnel.ps1'
 & $venvPython @uvicornArguments
-

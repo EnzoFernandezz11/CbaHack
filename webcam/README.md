@@ -88,10 +88,18 @@ túnel al terminar la prueba.
 4. Autorice el permiso de cámara.
 5. Verifique que el visor muestre los frames y que los contadores de FPS avancen.
 
-Los valores iniciales son 640 px de ancho, calidad JPEG del 70 % y 8 FPS. Se
+Los valores iniciales son 640 px de ancho, calidad JPEG del 60 % y 12 FPS. Se
 pueden ajustar desde `/camera` antes de iniciar. Si la red se congestiona, el
 cliente deja de producir temporalmente y el servidor reemplaza frames pendientes
 para no acumular latencia.
+
+El emisor mantiene como máximo dos frames sin confirmar y el servidor confirma
+cada recepción. Esa pequeña ventana sostiene los FPS aun con el viaje de ida y
+vuelta del túnel, sin dejar crecer una cola larga. El visor también
+descarta JPEGs pendientes si la decodificación queda atrás. Así se sacrifica un
+frame viejo antes de convertir congestión momentánea en varios segundos de
+latencia. La compresión WebSocket está desactivada porque los JPEG ya vienen
+comprimidos y volver a comprimirlos consume CPU sin reducirlos apreciablemente.
 
 ## Configuración del servidor
 

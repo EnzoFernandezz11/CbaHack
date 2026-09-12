@@ -147,9 +147,9 @@ Contendrá la documentación de soporte:
 - Guion, checklist y plan de contingencia para la demo.
 - Fuentes agronómicas y datasets utilizados.
 
-### `web/` (planificada)
+### `web/`
 
-Esta carpeta todavía no existe y se creará cuando comience el desarrollo de la aplicación. Reunirá la experiencia web completa:
+Esta carpeta reúne la experiencia web completa:
 
 ```text
 web/
@@ -173,6 +173,16 @@ El backend será responsable de:
 - Dibujar las cajas de detección sobre cada frame.
 - Enviar los frames procesados a `/viewer`.
 - Calcular conteos y métricas complementarias si se incorporan a la demo.
+
+#### Estado de implementación del relay de cámara
+
+Desde el 2026-09-12 está implementada la primera integración teléfono–computadora sin inferencia YOLO. El teléfono abre `/camera`, captura JPEG y los envía mediante `/ws/camera`; la computadora abre `/viewer` y recibe los frames mediante `/ws/viewer`. El backend FastAPI retransmite el JPEG sin modificarlo y conserva solamente el frame más reciente para evitar que una conexión lenta acumule latencia.
+
+Esta etapa incluye indicadores de conexión y FPS, reconexión del viewer, configuración de resolución y calidad JPEG, un endpoint `/api/status`, pruebas automáticas y scripts de instalación y ejecución para Windows. `web/backend/frame_processor.py` mantiene aislado el punto donde se incorporará YOLO posteriormente.
+
+Para acceder a la cámara desde un teléfono se debe usar la URL HTTPS generada por Cloudflare Tunnel. Las instrucciones operativas se encuentran en `web/README.md`.
+
+La implementación fue verificada el 2026-09-12 tanto sobre `localhost` como a través de un Quick Tunnel HTTPS real. La prueba externa confirmó HTTP, WebSocket seguro, retransmisión binaria exacta de un JPEG y notificaciones de conexión y desconexión. El túnel utilizado para la prueba fue cerrado al finalizar.
 
 Para el MVP no se necesita desplegar el frontend en Vercel ni ejecutar YOLO en un servidor externo. Toda la aplicación se servirá desde la notebook y se disponibilizará mediante la URL HTTPS temporal provista por Cloudflare Tunnel.
 

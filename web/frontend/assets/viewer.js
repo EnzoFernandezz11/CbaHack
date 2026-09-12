@@ -1,7 +1,4 @@
 const params = new URLSearchParams(location.search);
-const demoMode = params.get('demo') === '1';
-const mockMetrics = params.get('mock_metrics') === '1';
-const DEPLOYED_VIEWER_WS = 'wss://entrance-could-aye-que.trycloudflare.com/ws/viewer';
 const metricElements = {
   detections: document.querySelector('#metric-detections'),
   kg_ha: document.querySelector('#metric-loss'),
@@ -22,7 +19,6 @@ let currentFrameUrl;
 let reconnectTimer;
 let toastTimer;
 let pendingTelemetry;
-let demoTimer;
 let receivedFrames = 0;
 let framesThisSecond = 0;
 let telemetryReceived = false;
@@ -31,7 +27,7 @@ function websocketUrl() {
   const explicit = params.get('ws');
   if (explicit) return explicit;
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:') {
-    return DEPLOYED_VIEWER_WS;
+    return 'ws://127.0.0.1:8000/ws/viewer';
   }
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${protocol}//${location.host}/ws/viewer`;
@@ -77,7 +73,6 @@ function showFrame(blob, metadata = pendingTelemetry) {
   const id = metadata?.frame_id ?? receivedFrames;
   frameLabel.textContent = `FRAME ${id}`;
   frameInfo.textContent = metadata?.width && metadata?.height ? `${metadata.width} × ${metadata.height}` : 'JPEG procesado';
-  if (mockMetrics && !metadata) applyMockMetrics(receivedFrames);
   pendingTelemetry = undefined;
 }
 
@@ -89,17 +84,7 @@ function handleJson(data) {
   }
 }
 
-function applyMockMetrics(frameId) {
-  const detections = 10 + Math.round(3 * Math.sin(frameId / 7));
-  replaceMetric(metricElements.detections, formatNumber(detections));
-  replaceMetric(metricElements.kg_ha, formatNumber(detections * .48, 1), 'kg/ha');
-  replaceMetric(metricElements.latency_ms, formatNumber(120 + Math.round(Math.sin(frameId / 5) * 16)), 'ms');
-  document.querySelector('#model-state').textContent = 'DEMO';
-  document.querySelector('#telemetry-state').textContent = 'SIMULADA';
-}
-
 function connect() {
-  if (demoMode) return startDemo();
   clearTimeout(reconnectTimer);
   setConnection('', 'Conectando');
   socket = new WebSocket(websocketUrl());
@@ -121,57 +106,6 @@ function connect() {
     reconnectTimer = setTimeout(connect, 1500);
   });
   socket.addEventListener('error', () => socket.close());
-}
-
-function demoFrame(frameId) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 960;
-  canvas.height = 540;
-  const ctx = canvas.getContext('2d');
-  const gradient = ctx.createLinearGradient(0, 0, 960, 540);
-  gradient.addColorStop(0, '#765d38');
-  gradient.addColorStop(1, '#443722');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 960, 540);
-  ctx.strokeStyle = 'rgba(30,20,9,.32)';
-  ctx.lineWidth = 3;
-  for (let y = -80; y < 620; y += 42) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(960, y + 145); ctx.stroke(); }
-  const count = 10 + Math.round(3 * Math.sin(frameId / 5));
-  for (let i = 0; i < count; i += 1) {
-    const x = 70 + ((i * 181 + frameId * 4) % 800);
-    const y = 70 + ((i * 97) % 390);
-    ctx.fillStyle = '#b98343';
-    ctx.beginPath(); ctx.ellipse(x + 22, y + 12, 22, 12, .15, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#c9f269'; ctx.lineWidth = 3; ctx.strokeRect(x - 7, y - 8, 59, 40);
-    ctx.fillStyle = '#c9f269'; ctx.fillRect(x - 7, y - 27, 76, 19);
-    ctx.fillStyle = '#17200f'; ctx.font = 'bold 12px monospace'; ctx.fillText(`vaina ${76 + i % 19}%`, x - 3, y - 13);
-  }
-  return { url: canvas.toDataURL('image/jpeg', .75), count };
-}
-
-function startDemo() {
-  setConnection('connected', 'Modo demostración');
-  document.querySelector('#camera-state').textContent = 'SIMULADA';
-  document.querySelector('#model-state').textContent = 'SIMULADO';
-  let frameId = 0;
-  demoTimer = setInterval(() => {
-    frameId += 1;
-    const frame = demoFrame(frameId);
-    frameImage.src = frame.url;
-    frameImage.hidden = false;
-    placeholder.classList.add('hidden');
-    frameLabel.textContent = `FRAME ${frameId}`;
-    frameInfo.textContent = '960 × 540 · DEMO';
-    applyTelemetry({
-      frame_id: frameId,
-      detections: frame.count,
-      kg_ha: frame.count * .48,
-      fps: 8 + Math.sin(frameId / 4) * .4,
-      latency_ms: 118 + Math.round(Math.sin(frameId / 3) * 14),
-      camera_connected: true,
-      model_ready: true,
-    });
-  }, 500);
 }
 
 function notify(message) {
@@ -236,13 +170,12 @@ document.querySelectorAll('[data-layer]').forEach(button => button.addEventListe
   button.classList.add('active');
   const heat = document.querySelector('[data-map-content="heat"]');
   const route = document.querySelector('[data-map-content="route"]');
-  heat.style.opacity = button.dataset.layer === 'route' ? '.12' : '1';
-  route.style.opacity = button.dataset.layer === 'heat' ? '.45' : '1';
+  heat.style.opacity = button.dataset.layer === 'heat' ? '1' : '0';
+  route.style.opacity = button.dataset.layer === 'route' ? '1' : '0';
 }));
 
 window.addEventListener('pagehide', () => {
   clearTimeout(reconnectTimer);
-  clearInterval(demoTimer);
   socket?.close();
   if (currentFrameUrl) URL.revokeObjectURL(currentFrameUrl);
 });
@@ -250,7 +183,7 @@ window.addEventListener('pagehide', () => {
 connect();
 
 window.setInterval(() => {
-  if (!demoMode && !telemetryReceived) {
+  if (!telemetryReceived) {
     replaceMetric(metricElements.fps, formatNumber(framesThisSecond, 1), 'FPS');
   }
   framesThisSecond = 0;

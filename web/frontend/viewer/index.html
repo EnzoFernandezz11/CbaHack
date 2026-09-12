@@ -4,31 +4,125 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0d1511">
-  <title>Panel · Maní Rover</title>
-  <link rel="stylesheet" href="../assets/app.css">
+  <title>Panel · Rehearves</title>
+  <link rel="stylesheet" href="../assets/app.css?v=6">
 </head>
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand"><div class="logo" aria-hidden="true">🥜</div><div><h1>Maní Rover</h1><p class="subtitle">Detección de pérdidas en superficie</p></div></div>
+      <div class="brand"><div class="logo" aria-hidden="true">🥜</div><div><h1>Rehearves</h1><p class="subtitle">Detección de pérdidas en superficie</p></div></div>
       <div class="status-group"><span class="pill" id="viewer-connection"><span class="dot"></span><span>Conectando</span></span><span class="pill">Establecimiento La Esperanza</span></div>
     </header>
-    <section class="viewer-grid">
-      <div>
-        <section class="panel video-panel">
-          <div class="panel-head">
-            <h2><span class="live">EN VIVO</span>Visión procesada</h2>
-            <div class="video-tools">
-              <span class="eyebrow" id="frame-info">Esperando imagen</span>
-              <button class="fullscreen-button" id="fullscreen-button" type="button" aria-label="Ver cámara en pantalla completa" title="Pantalla completa">
-                <span aria-hidden="true">⛶</span><span class="fullscreen-text">Pantalla completa</span>
-              </button>
-            </div>
+    <section class="dashboard-layout">
+      <aside class="dashboard-left">
+        <section class="panel connections">
+          <div class="section-title"><h2>Conexiones</h2></div>
+          <div class="connection"><span class="connection-icon">◉</span><span><strong>Cámara</strong><small>Celular · WebSocket</small></span><span class="ok" id="camera-state">ESPERA</span></div>
+          <div class="connection"><span class="connection-icon">◈</span><span><strong>Modelo YOLO</strong><small>Backend local</small></span><span class="ok" id="model-state">ESPERA</span></div>
+          <div class="connection"><span class="connection-icon">◇</span><span><strong>Telemetría</strong><small>Métricas sincronizadas</small></span><span class="ok" id="telemetry-state">ESPERA</span></div>
+        </section>
+        <section class="panel hopper-panel" aria-label="Carga de la tolva">
+          <div class="section-title"><h2>Tolva</h2><span class="small-status">Cargando</span></div>
+          <div class="hopper-visual">
+            <svg viewBox="0 0 260 160" role="img" aria-label="Animación de una tolva agrícola que se llena de granos">
+              <defs>
+                <clipPath id="hopper-cavity"><path d="M38 63H222L199 116H61Z"/></clipPath>
+                <pattern id="hopper-grains" width="13" height="12" patternUnits="userSpaceOnUse">
+                  <circle cx="3" cy="4" r="1.5" fill="#f9d996" opacity=".6"/>
+                  <circle cx="10" cy="9" r="1.2" fill="#7b5229" opacity=".5"/>
+                </pattern>
+              </defs>
+              <path d="M164 12H238V23H192L174 46" fill="none" stroke="#8ca48c" stroke-width="8" stroke-linejoin="round"/>
+              <path class="hopper-stream" d="M172 47V68" fill="none" stroke="#e6bb67" stroke-width="5" stroke-linecap="round" stroke-dasharray="3 5"/>
+              <path d="M28 58H232L205 122H55Z" fill="#203127" stroke="#9cac80" stroke-width="3" stroke-linejoin="round"/>
+              <g clip-path="url(#hopper-cavity)">
+                <g class="hopper-grain">
+                  <rect x="36" y="57" width="188" height="62" fill="#d4a65b"/>
+                  <rect x="36" y="57" width="188" height="62" fill="url(#hopper-grains)"/>
+                  <path d="M36 62Q82 54 128 61T224 58" fill="none" stroke="#f4ce7f" stroke-width="4"/>
+                </g>
+              </g>
+              <path d="M28 58H232L205 122H55Z" fill="none" stroke="#c7d4a2" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M69 122V136H194V122" fill="none" stroke="#8ca48c" stroke-width="5" stroke-linejoin="round"/>
+              <circle cx="85" cy="143" r="11" fill="#111c16" stroke="#869783" stroke-width="4"/>
+              <circle cx="177" cy="143" r="11" fill="#111c16" stroke="#869783" stroke-width="4"/>
+            </svg>
           </div>
-          <div class="video-stage" id="video-stage">
-            <img id="processed-frame" alt="Video procesado con detecciones" hidden>
-            <div class="video-placeholder" id="video-placeholder"><strong>Esperando cámara</strong><small>Los frames procesados aparecerán automáticamente.</small></div>
-            <span class="frame-label" id="frame-label">FRAME —</span>
+          <div class="hopper-progress" aria-hidden="true"></div>
+          <p class="hopper-caption">Animación ilustrativa del llenado.</p>
+        </section>
+      </aside>
+      <section class="panel video-panel">
+        <div class="panel-head">
+          <h2><span class="live">EN VIVO</span>Visión procesada</h2>
+          <div class="video-tools">
+            <span class="eyebrow" id="frame-info">Esperando imagen</span>
+            <button class="fullscreen-button" id="fullscreen-button" type="button" aria-label="Ver cámara en pantalla completa" title="Pantalla completa">
+              <span aria-hidden="true">⛶</span><span class="fullscreen-text">Pantalla completa</span>
+            </button>
+          </div>
+        </div>
+        <div class="video-stage" id="video-stage">
+          <img id="processed-frame" alt="Video procesado con detecciones" hidden>
+          <div class="video-placeholder" id="video-placeholder"><strong>Esperando cámara</strong><small>Los frames procesados aparecerán automáticamente.</small></div>
+          <span class="frame-label" id="frame-label">FRAME —</span>
+        </div>
+      </section>
+      <div class="dashboard-right">
+        <section class="panel map-panel">
+          <div class="map-head"><div><h2>Mapa de pérdidas · Lote Norte</h2><p>Vista ilustrativa de los surcos y las zonas de mayor pérdida.</p></div><div class="segmented"><button class="active" data-layer="heat">Calor</button><button data-layer="route">Recorrido</button><button data-layer="rows">Surcos</button></div></div>
+          <div class="map">
+            <svg viewBox="0 0 900 330" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Lote ilustrativo con surcos rectos y mapa de calor de pérdidas">
+              <defs>
+                <pattern id="neighbor-rows" width="16" height="16" patternUnits="userSpaceOnUse">
+                  <rect width="16" height="16" fill="#3a4b30"/>
+                  <path d="M0 3H16M0 11H16" stroke="#667348" stroke-width="3" opacity=".55"/>
+                </pattern>
+                <pattern id="field-furrows" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <rect width="20" height="20" fill="#657149"/>
+                  <path d="M2 0V20M18 0V20" stroke="#34432e" stroke-width="4"/>
+                  <path d="M9 0V20" stroke="#9da46b" stroke-width="3" opacity=".7"/>
+                </pattern>
+                <radialGradient id="loss-high">
+                  <stop offset="0" stop-color="#e44c3e" stop-opacity=".95"/>
+                  <stop offset=".42" stop-color="#f5a34a" stop-opacity=".8"/>
+                  <stop offset="1" stop-color="#ffd36d" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="loss-medium">
+                  <stop offset="0" stop-color="#f2b64e" stop-opacity=".82"/>
+                  <stop offset=".65" stop-color="#e5df67" stop-opacity=".52"/>
+                  <stop offset="1" stop-color="#badb72" stop-opacity="0"/>
+                </radialGradient>
+                <clipPath id="field-clip"><rect x="96" y="28" width="708" height="274"/></clipPath>
+                <filter id="heat-soft"><feGaussianBlur stdDeviation="11"/></filter>
+              </defs>
+              <rect width="900" height="330" fill="#273923"/>
+              <rect width="78" height="330" fill="url(#neighbor-rows)"/>
+              <rect x="822" width="78" height="330" fill="url(#neighbor-rows)"/>
+              <path d="M83 0V330M816 0V330" stroke="#9c9470" stroke-width="12" opacity=".82"/>
+              <rect x="95" y="27" width="710" height="276" fill="#42543a"/>
+              <g clip-path="url(#field-clip)">
+                <rect x="96" y="28" width="708" height="274" fill="url(#field-furrows)"/>
+                <g class="map-layer" data-map-content="heat">
+                  <g filter="url(#heat-soft)">
+                    <ellipse cx="222" cy="115" rx="126" ry="85" fill="url(#loss-high)"/>
+                    <ellipse cx="424" cy="182" rx="153" ry="106" fill="url(#loss-medium)"/>
+                    <ellipse cx="624" cy="216" rx="139" ry="92" fill="url(#loss-high)"/>
+                    <ellipse cx="732" cy="89" rx="113" ry="75" fill="url(#loss-medium)"/>
+                  </g>
+                  <path d="M155 56V138M195 46V177M235 60V170M275 80V147M515 178V271M555 148V282M595 142V289M635 155V285M675 176V260" stroke="#fbb655" stroke-width="12" stroke-opacity=".18"/>
+                </g>
+                <rect x="96" y="28" width="708" height="274" fill="url(#field-furrows)" opacity=".18"/>
+                <g class="map-layer" data-map-content="route">
+                  <path d="M145 275V53H265V275H385V53H505V275H625V53H745V275" fill="none" stroke="#17251a" stroke-width="7" stroke-linejoin="round" opacity=".75"/>
+                  <path d="M145 275V53H265V275H385V53H505V275H625V53H745V275" fill="none" stroke="#d8f69b" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+                  <circle id="robot-marker" cx="625" cy="53" r="8" fill="#d8f69b" stroke="#17251a" stroke-width="3"/>
+                </g>
+              </g>
+              <rect class="map-field-border" x="95" y="27" width="710" height="276"/>
+              <text class="map-label" x="112" y="51">SECTOR A · 1,4 HA</text>
+            </svg>
+            <div class="legend"><span>Pérdida baja</span><span class="gradient"></span><span>Pérdida alta</span></div>
           </div>
         </section>
         <section class="metrics" aria-label="Métricas en vivo">
@@ -38,37 +132,15 @@
           <article class="metric"><div class="eyebrow">Latencia</div><div class="value" id="metric-latency">—<span class="unit">ms</span></div></article>
         </section>
       </div>
-      <aside class="sidebar">
-        <section class="panel operation">
-          <div class="section-title"><h2>Operación</h2><span class="small-status" id="task-status">En espera</span></div>
-          <div class="task-summary"><div class="task-name"><span><strong>Relevamiento Lote Norte</strong><small>Sector A · 1,4 ha</small></span><span class="task-tag" id="task-tag">LISTA</span></div><div class="progress"><span id="task-progress"></span></div><div class="task-detail"><span id="progress-label">0% completado</span><span>~18 min</span></div></div>
-          <div class="actions"><button class="action primary" id="start-task">▶ Comenzar tarea</button><button class="action danger" id="stop-task" disabled>■ Detener tarea</button><button class="action" id="schedule-task">◷ Programar tarea</button></div>
-        </section>
-        <section class="panel connections">
-          <div class="section-title"><h2>Conexiones</h2></div>
-          <div class="connection"><span class="connection-icon">◉</span><span><strong>Cámara</strong><small>Celular · WebSocket</small></span><span class="ok" id="camera-state">ESPERA</span></div>
-          <div class="connection"><span class="connection-icon">◈</span><span><strong>Modelo YOLO</strong><small>Backend local</small></span><span class="ok" id="model-state">ESPERA</span></div>
-          <div class="connection"><span class="connection-icon">◇</span><span><strong>Telemetría</strong><small>Métricas sincronizadas</small></span><span class="ok" id="telemetry-state">ESPERA</span></div>
-        </section>
-        <aside class="panel demo-note"><strong>Analítica preparada para YOLO.</strong> Hasta conectar la inferencia, se puede usar <code>?mock_metrics=1</code> para mostrar métricas simuladas sobre la cámara real.</aside>
-      </aside>
     </section>
-    <section class="panel map-panel">
-      <div class="map-head"><div><h2>Mapa de pérdidas · Lote Norte</h2><p>Detecciones acumuladas y georreferenciadas durante la tarea.</p></div><div class="segmented"><button class="active" data-layer="heat">Calor</button><button data-layer="route">Recorrido</button><button data-layer="satellite">Satelital</button></div></div>
-      <div class="map">
-        <svg viewBox="0 0 900 330" role="img" aria-label="Mapa conceptual de pérdidas del lote">
-          <defs><pattern id="rows" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(18)"><rect width="22" height="22" fill="#405137"/><rect width="7" height="22" fill="#35462f"/></pattern><radialGradient id="hot"><stop offset="0" stop-color="#ff554d" stop-opacity=".9"/><stop offset=".5" stop-color="#ffb445" stop-opacity=".65"/><stop offset="1" stop-color="#c9f269" stop-opacity="0"/></radialGradient></defs>
-          <rect width="900" height="330" fill="url(#rows)"/><path d="M-20 280C170 245 250 263 390 224S680 140 930 170" fill="none" stroke="#a89b78" stroke-width="18" opacity=".7"/><path d="M75 52L810 28L838 276L112 306Z" fill="none" stroke="#dbe9c5" stroke-width="2" opacity=".72"/>
-          <g class="map-layer" data-map-content="heat"><ellipse cx="285" cy="130" rx="130" ry="90" fill="url(#hot)"/><ellipse cx="635" cy="205" rx="115" ry="82" fill="url(#hot)"/></g>
-          <path class="map-layer" data-map-content="route" d="M135 278C180 245 175 88 230 76S320 260 375 246 410 62 470 58 545 235 600 222 628 43 695 44 755 88 790 238" fill="none" stroke="#c9f269" stroke-width="4" stroke-dasharray="8 8"/>
-          <circle id="robot-marker" cx="600" cy="222" r="10" fill="#c9f269" stroke="#122016" stroke-width="4"/><text x="128" y="80" fill="#f4f1e8" font-size="13" font-weight="800">SECTOR A</text>
-        </svg>
-        <div class="legend"><span>Baja</span><span class="gradient"></span><span>Alta</span></div>
-      </div>
+    <section class="panel operation dashboard-operation">
+      <div class="section-title"><h2>Operación</h2><span class="small-status" id="task-status">En espera</span></div>
+      <div class="task-summary"><div class="task-name"><span><strong>Relevamiento Lote Norte</strong><small>Sector A · 1,4 ha</small></span><span class="task-tag" id="task-tag">LISTA</span></div><div class="progress"><span id="task-progress"></span></div><div class="task-detail"><span id="progress-label">0% completado</span><span>~18 min</span></div></div>
+      <div class="actions"><button class="action primary" id="start-task">▶ Comenzar tarea</button><button class="action danger" id="stop-task" disabled>■ Detener tarea</button><button class="action" id="schedule-task">◷ Programar tarea</button></div>
     </section>
   </main>
   <dialog id="schedule-dialog"><form class="modal" method="dialog"><h2>Programar tarea</h2><p>Configuración demostrativa del próximo relevamiento.</p><div class="fields"><label class="full">Nombre<input value="Relevamiento Lote Norte"></label><label>Fecha<input type="date" value="2026-09-13"></label><label>Hora<input type="time" value="09:00"></label></div><div class="modal-actions"><button class="action" value="cancel">Cancelar</button><button class="action primary" value="confirm" id="confirm-schedule">Programar</button></div></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="../assets/viewer.js"></script>
+  <script type="module" src="../assets/viewer.js?v=6"></script>
 </body>
 </html>

@@ -5,9 +5,11 @@ El frontend usa HTML, CSS y JavaScript nativo. No requiere instalar dependencias
 ## Vistas
 
 - `/camera/`: solicita la cámara tras una acción del usuario, comprime frames JPEG y los envía al backend.
-- `/viewer/`: recibe los frames procesados y actualiza las métricas en vivo.
-- `/viewer/?demo=1`: simula video y telemetría para presentar la interfaz sin backend.
-- `/viewer/?mock_metrics=1`: usa la cámara desplegada y simula solamente las métricas de YOLO.
+- `/viewer/`: recibe los frames procesados y muestra una animación ilustrativa de la tolva. Las métricas solo se actualizan si el backend envía telemetría real.
+
+La vista de cámara muestra el encuadre completo, sin recortar los bordes, y ocupa como máximo el 60 % del alto de la pantalla. El visor usa un marco vertical 9:16 que se ajusta a la altura de la ventana y tiene un ancho máximo de 360 px.
+El visor conserva la proporción de cada JPEG: si el celular transmite en vertical, el frame queda centrado con bandas negras a los lados.
+En escritorio, Conexiones y Tolva quedan a la izquierda, el video al centro, y el mapa de pérdidas con las métricas a la derecha. Operación queda debajo de ese bloque.
 
 Para revisar el frontend localmente:
 
@@ -15,15 +17,13 @@ Para revisar el frontend localmente:
 python3 -m http.server 8080 --directory web/frontend
 ```
 
-Luego abrir `http://localhost:8080/viewer/?demo=1`. El acceso real a la cámara desde otro dispositivo requiere HTTPS; en la demo se obtendrá mediante Cloudflare Tunnel.
+Luego abrir `http://localhost:8080/viewer/`. El acceso real a la cámara desde otro dispositivo requiere HTTPS; durante el desarrollo se obtiene mediante Cloudflare Tunnel.
 
-Mientras se ejecute localmente, el visor se conecta por defecto al backend temporal actual:
+Mientras se ejecute localmente, el visor se conecta por defecto al backend en:
 
 ```text
-wss://entrance-could-aye-que.trycloudflare.com/ws/viewer
+ws://127.0.0.1:8000/ws/viewer
 ```
-
-Para mostrar la cámara real con analítica simulada durante la preparación de la demo, abrir `http://localhost:8080/viewer/?mock_metrics=1`.
 
 El visor permite abrir la transmisión en pantalla completa desde el botón situado sobre el video o haciendo doble clic en la imagen. Se puede salir con el mismo botón o con `Esc`.
 

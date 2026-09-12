@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroBot - Robot Recolector Autonomo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+  canvas { display: block; }
+
+  #hud {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  #title {
+    position: absolute; top: 24px; left: 32px;
+    color: #fff;
+  }
+  #title h1 {
+    font-size: 28px; font-weight: 300; letter-spacing: 6px; text-transform: uppercase;
+    color: #a0ffb0;
+    text-shadow: 0 0 20px rgba(100, 255, 140, 0.4);
+  }
+  #title .sub {
+    font-size: 13px; letter-spacing: 3px; color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+  }
+
+  #stats {
+    position: absolute; bottom: 32px; left: 32px;
+    color: rgba(255,255,255,0.7); font-size: 12px;
+    letter-spacing: 1px; line-height: 2;
+  }
+  #stats .val { color: #a0ffb0; font-weight: 600; }
+
+  #controls-hint {
+    position: absolute; bottom: 32px; right: 32px;
+    color: rgba(255,255,255,0.3); font-size: 11px;
+    text-align: right; letter-spacing: 1px; line-height: 2;
+  }
+
+  .corner-frame {
+    position: absolute; width: 40px; height: 40px;
+    border-color: rgba(100, 255, 140, 0.25); border-style: solid;
+  }
+  .corner-frame.tl { top: 12px; left: 12px; border-width: 2px 0 0 2px; }
+  .corner-frame.tr { top: 12px; right: 12px; border-width: 2px 2px 0 0; }
+  .corner-frame.bl { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; }
+  .corner-frame.br { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; }
+
+  #scan-line {
+    position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(100,255,140,0.08) 30%, rgba(100,255,140,0.08) 70%, transparent 100%);
+    animation: scanMove 4s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes scanMove {
+    0% { top: 0; } 100% { top: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div class="corner-frame tl"></div>
+  <div class="corner-frame tr"></div>
+  <div class="corner-frame bl"></div>
+  <div class="corner-frame br"></div>
+  <div id="scan-line"></div>
+
+  <div id="title">
+    <h1>AgroBot</h1>
+    <div class="sub">Sistema autonomo de recuperacion de mani &mdash; HackCBA</div>
+  </div>
+
+  <div id="stats">
+    ANCHO DE TRABAJO: <span class="val">6.0 m</span><br>
+    CAMARAS YOLO: <span class="val">7 unidades</span><br>
+    BRAZOS DE SUCCION: <span class="val">5 unidades</span><br>
+    VELOCIDAD OPERATIVA: <span class="val">2.5 km/h</span><br>
+    CAPACIDAD TOLVA: <span class="val">800 kg</span>
+  </div>
+
+  <div id="controls-hint">
+    ARRASTRAR &mdash; ROTAR<br>
+    SCROLL &mdash; ZOOM<br>
+    CLICK DERECHO &mdash; PAN
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============================================================
+//  SCENE
+// ============================================================
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x1a1510, 0.012);
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 600);
+camera.position.set(14, 7, 16);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 2.2, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.maxPolarAngle = Math.PI / 2.05;
+controls.minDistance = 6;
+controls.maxDistance = 40;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.4;
+
+// ============================================================
+//  LIGHTING
+// ============================================================
+scene.add(new THREE.AmbientLight(0xffeedd, 0.35));
+
+const sun = new THREE.DirectionalLight(0xfff0d0, 2.2);
+sun.position.set(25, 35, 20);
+sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096);
+sun.shadow.camera.left = -35; sun.shadow.camera.right = 35;
+sun.shadow.camera.top = 35;  sun.shadow.camera.bottom = -35;
+sun.shadow.camera.near = 1;  sun.shadow.camera.far = 80;
+sun.shadow.bias = -0.0003;
+sun.shadow.normalBias = 0.02;
+scene.add(sun);
+
+const rimLight = new THREE.DirectionalLight(0xffa040, 0.6);
+rimLight.position.set(-15, 8, -20);
+scene.add(rimLight);
+
+const blueKick = new THREE.DirectionalLight(0x4080ff, 0.2);
+blueKick.position.set(0, 5, 20);
+scene.add(blueKick);
+
+// ============================================================
+//  SKY GRADIENT
+// ============================================================
+{
+  const skyGeo = new THREE.SphereGeometry(250, 32, 32);
+  const skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    uniforms: {
+      topColor:    { value: new THREE.Color(0x1a2a44) },
+      bottomColor: { value: new THREE.Color(0xf0c870) },
+      offset: { value: 20 },
+      exponent: { value: 0.5 }
+    },
+    vertexShader: `
+      varying vec3 vWorldPos;
+      void main() {
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 topColor;
+      uniform vec3 bottomColor;
+      uniform float offset;
+      uniform float exponent;
+      varying vec3 vWorldPos;
+      void main() {
+        float h = normalize(vWorldPos + offset).y;
+        gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+      }
+    `
+  });
+  scene.add(new THREE.Mesh(skyGeo, skyMat));
+}
+
+// ============================================================
+//  MATERIALS
+// ============================================================
+const mat = {
+  field:     new THREE.MeshStandardMaterial({ color: 0x6B5B3A, roughness: 1.0, metalness: 0 }),
+  furrow:    new THREE.MeshStandardMaterial({ color: 0x5A4A30, roughness: 1.0 }),
+  stubble:   new THREE.MeshStandardMaterial({ color: 0xA09060, roughness: 0.95 }),
+  stubbleD:  new THREE.MeshStandardMaterial({ color: 0x807050, roughness: 0.95 }),
+  peanut:    new THREE.MeshStandardMaterial({ color: 0xC8A860, roughness: 0.82 }),
+  peanutD:   new THREE.MeshStandardMaterial({ color: 0xB09050, roughness: 0.85 }),
+  chassis:   new THREE.MeshStandardMaterial({ color: 0x1e2e1e, roughness: 0.35, metalness: 0.7 }),
+  panel:     new THREE.MeshStandardMaterial({ color: 0x2a3a2a, roughness: 0.3, metalness: 0.6 }),
+  accent:    new THREE.MeshStandardMaterial({ color: 0x4CAF50, roughness: 0.3, metalness: 0.5 }),
+  metalDark: new THREE.MeshStandardMaterial({ color: 0x333840, roughness: 0.25, metalness: 0.85 }),
+  metalLt:   new THREE.MeshStandardMaterial({ color: 0x667788, roughness: 0.3, metalness: 0.7 }),
+  tire:      new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.92 }),
+  rim:       new THREE.MeshStandardMaterial({ color: 0xbbccbb, roughness: 0.15, metalness: 0.9 }),
+  camBody:   new THREE.MeshStandardMaterial({ color: 0x111115, roughness: 0.15, metalness: 0.9 }),
+  lens:      new THREE.MeshStandardMaterial({ color: 0x1133aa, roughness: 0.05, metalness: 1.0 }),
+  suction:   new THREE.MeshStandardMaterial({ color: 0x556060, roughness: 0.3, metalness: 0.7 }),
+  cup:       new THREE.MeshStandardMaterial({ color: 0xDD6600, roughness: 0.75 }),
+  hose:      new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6 }),
+  hopper:    new THREE.MeshStandardMaterial({ color: 0x354535, roughness: 0.4, metalness: 0.55 }),
+  glow:      new THREE.MeshStandardMaterial({ color: 0x44ff66, emissive: 0x44ff66, emissiveIntensity: 2.0, transparent: true, opacity: 0.9 }),
+  glowRed:   new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xff2222, emissiveIntensity: 1.5 }),
+  glowBlue:  new THREE.MeshStandardMaterial({ color: 0x4488ff, emissive: 0x4488ff, emissiveIntensity: 1.0, transparent: true, opacity: 0.8 }),
+  tree:      new THREE.MeshStandardMaterial({ color: 0x2d5a27, roughness: 0.9 }),
+};
+
+// ============================================================
+//  GROUND — field with parallel furrows along Z
+// ============================================================
+{
+  const W = 140, S = 80;
+  const geo = new THREE.PlaneGeometry(W, W, S, S);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i);
+    // gentle undulation
+    pos.setZ(i, Math.sin(x * 0.3) * 0.06 + Math.sin(y * 0.2) * 0.04 + (Math.random() - 0.5) * 0.05);
+  }
+  geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(geo, mat.field);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+
+  // Furrows — parallel to Z (robot travel direction)
+  const furrowSpacing = 0.76; // ~76cm maní row spacing
+  for (let x = -35; x <= 35; x += furrowSpacing) {
+    const fGeo = new THREE.BoxGeometry(0.12, 0.06, W);
+    const f = new THREE.Mesh(fGeo, mat.furrow);
+    f.position.set(x, 0.02, 0);
+    f.receiveShadow = true;
+    scene.add(f);
+
+    // Subtle ridge beside furrow
+    const rGeo = new THREE.BoxGeometry(0.25, 0.03, W);
+    const r = new THREE.Mesh(rGeo, new THREE.MeshStandardMaterial({ color: 0x5E4E34, roughness: 1 }));
+    r.position.set(x + 0.18, 0.015, 0);
+    r.receiveShadow = true;
+    scene.add(r);
+  }
+}
+
+// ============================================================
+//  STUBBLE (rastrojos)
+// ============================================================
+{
+  const stubGeo = new THREE.CylinderGeometry(0.012, 0.022, 1, 3);
+  const stubGeoS = new THREE.CylinderGeometry(0.01, 0.018, 0.6, 3);
+
+  for (let i = 0; i < 2500; i++) {
+    const useMat = Math.random() > 0.4 ? mat.stubble : mat.stubbleD;
+    const g = Math.random() > 0.5 ? stubGeo : stubGeoS;
+    const s = new THREE.Mesh(g, useMat);
+    const h = g === stubGeo ? 1 : 0.6;
+    const x = (Math.random() - 0.5) * 70;
+    const z = (Math.random() - 0.5) * 70;
+    s.position.set(x, h * 0.5 * (0.4 + Math.random() * 0.6), z);
+    s.scale.y = 0.4 + Math.random() * 0.6;
+    s.rotation.x = (Math.random() - 0.5) * 0.5;
+    s.rotation.z = (Math.random() - 0.5) * 0.5;
+    s.castShadow = true;
+    scene.add(s);
+  }
+}
+
+// ============================================================
+//  PEANUTS
+// ============================================================
+function makePeanut(x, z) {
+  const g = new THREE.Group();
+  const s = 0.05 + Math.random() * 0.025;
+  const m = Math.random() > 0.4 ? mat.peanut : mat.peanutD;
+  for (let j = -1; j <= 1; j += 2) {
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(s, 10, 7), m);
+    sphere.scale.set(1, 0.85, 1);
+    sphere.position.x = j * s * 0.55;
+    sphere.castShadow = true;
+    g.add(sphere);
+  }
+  // Neck between lobes
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(s * 0.35, s * 0.35, s * 0.5, 6), m);
+  neck.rotation.z = Math.PI / 2;
+  neck.castShadow = true;
+  g.add(neck);
+
+  g.position.set(x, s * 0.55, z);
+  g.rotation.y = Math.random() * Math.PI * 2;
+  g.rotation.z = (Math.random() - 0.5) * 0.25;
+  scene.add(g);
+}
+
+for (let i = 0; i < 100; i++) makePeanut((Math.random() - 0.5) * 18, (Math.random() - 0.5) * 18);
+for (let i = 0; i < 100; i++) makePeanut((Math.random() - 0.5) * 55, (Math.random() - 0.5) * 55);
+
+// ============================================================
+//  HORIZON TREES
+// ============================================================
+for (let i = 0; i < 50; i++) {
+  const a = (i / 50) * Math.PI * 2;
+  const d = 50 + Math.random() * 12;
+  const h = 2 + Math.random() * 4;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, h * 0.4, 5), new THREE.MeshStandardMaterial({ color: 0x4a3520, roughness: 1 }));
+  trunk.position.set(Math.cos(a) * d, h * 0.2, Math.sin(a) * d);
+  trunk.castShadow = true;
+  scene.add(trunk);
+  const crown = new THREE.Mesh(new THREE.SphereGeometry(1 + Math.random(), 6, 6), mat.tree);
+  crown.position.set(Math.cos(a) * d, h * 0.5 + 0.5, Math.sin(a) * d);
+  crown.scale.y = 0.8 + Math.random() * 0.4;
+  crown.castShadow = true;
+  scene.add(crown);
+}
+
+// ============================================================
+//  ROBOT
+// ============================================================
+const robot = new THREE.Group();
+
+const FW = 6.4;   // frame width (X) — ancho de via
+const FL = 9.0;   // frame length (Z) — largo
+const FH = 3.2;   // frame height
+const BAR = 0.18;
+const LEG_OUT = 1.0; // wheel arm extension
+
+// Helper
+function box(w, h, d, material) {
+  const g = new THREE.BoxGeometry(w, h, d);
+  const m = new THREE.Mesh(g, material);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+function cyl(r, h, segs, material) {
+  const g = new THREE.CylinderGeometry(r, r, h, segs);
+  const m = new THREE.Mesh(g, material);
+  m.castShadow = true;
+  return m;
+}
+function setPos(m, x, y, z) { m.position.set(x, y, z); return m; }
+
+// --- MAIN FRAME (structural tubes) ---
+// Top rails along Z
+for (const dx of [-FW/2, FW/2]) {
+  const rail = box(BAR, BAR, FL, mat.chassis);
+  setPos(rail, dx, FH, 0);
+  robot.add(rail);
+}
+// Top rails along X
+for (const dz of [-FL/2, FL/2, -FL/4, 0, FL/4]) {
+  const cross = box(FW, BAR, BAR, mat.chassis);
+  setPos(cross, 0, FH, dz);
+  robot.add(cross);
+}
+// Bottom rails along Z (lower frame)
+for (const dx of [-FW/2, FW/2]) {
+  const rail = box(BAR * 0.8, BAR * 0.8, FL, mat.metalDark);
+  setPos(rail, dx, FH * 0.35, 0);
+  robot.add(rail);
+}
+// Bottom cross members
+for (const dz of [-FL/2, FL/2]) {
+  const cross = box(FW, BAR * 0.8, BAR * 0.8, mat.metalDark);
+  setPos(cross, 0, FH * 0.35, dz);
+  robot.add(cross);
+}
+
+// --- LEGS (4 corner pillars) ---
+const corners = [
+  [-FW/2, -FL/2], [FW/2, -FL/2],
+  [-FW/2, FL/2],  [FW/2, FL/2]
+];
+
+for (const [cx, cz] of corners) {
+  // Main vertical pillar
+  const pillar = box(BAR * 1.2, FH, BAR * 1.2, mat.chassis);
+  setPos(pillar, cx, FH / 2, cz);
+  robot.add(pillar);
+
+  // Diagonal brace
+  const braceLen = Math.sqrt(FH * FH * 0.25 + 1);
+  const brace = box(BAR * 0.6, braceLen, BAR * 0.6, mat.metalDark);
+  brace.rotation.z = Math.sign(cx) * 0.35;
+  setPos(brace, cx * 0.85, FH * 0.55, cz);
+  robot.add(brace);
+
+  // --- WHEEL ARM (extending outward) ---
+  const dirX = Math.sign(cx);
+  const arm = box(LEG_OUT + 0.3, BAR, BAR * 1.5, mat.metalDark);
+  setPos(arm, cx + dirX * (LEG_OUT / 2 + 0.1), 0.55, cz);
+  robot.add(arm);
+
+  // Suspension strut
+  const strut = cyl(0.04, 1.2, 8, mat.metalLt);
+  setPos(strut, cx + dirX * LEG_OUT * 0.7, 1.2, cz);
+  robot.add(strut);
+
+  // --- WHEEL (agricultural tire) ---
+  const wheelG = new THREE.Group();
+  const tireR = 0.6, tireW = 0.4;
+
+  // Tire
+  const tire = new THREE.Mesh(new THREE.TorusGeometry(tireR - tireW * 0.5, tireW * 0.5, 12, 24), mat.tire);
+  wheelG.add(tire);
+
+  // Rim disc
+  const rimDisc = cyl(tireR * 0.45, tireW * 0.3, 16, mat.rim);
+  rimDisc.rotation.x = Math.PI / 2;
+  wheelG.add(rimDisc);
+
+  // Tread blocks
+  for (let t = 0; t < 14; t++) {
+    const angle = (t / 14) * Math.PI * 2;
+    const tread = box(tireW * 0.45, 0.04, 0.12, mat.tire);
+    tread.position.set(0, Math.sin(angle) * (tireR - 0.05), Math.cos(angle) * (tireR - 0.05));
+    tread.rotation.x = angle;
+    wheelG.add(tread);
+  }
+
+  // Hub cap with green accent
+  const hub = cyl(0.08, tireW * 0.35, 8, mat.accent);
+  hub.rotation.x = Math.PI / 2;
+  wheelG.add(hub);
+
+  wheelG.position.set(cx + dirX * (LEG_OUT + 0.5), tireR, cz);
+  // Wheel oriented so it rolls along Z (forward/back)
+  // The torus faces XY plane by default, rolls along Z — correct
+  robot.add(wheelG);
+}
+
+// --- SIDE PANELS (aerodynamic body panels) ---
+for (const dx of [-1, 1]) {
+  // Upper side panel
+  const panelGeo = new THREE.BoxGeometry(0.06, FH * 0.4, FL * 0.7);
+  const panel = new THREE.Mesh(panelGeo, mat.panel);
+  setPos(panel, dx * FW / 2, FH * 0.75, 0);
+  panel.castShadow = true;
+  robot.add(panel);
+
+  // Green accent strip
+  const strip = box(0.07, 0.06, FL * 0.7, mat.accent);
+  setPos(strip, dx * FW / 2, FH * 0.58, 0);
+  robot.add(strip);
+
+  // LED strip (glowing)
+  const led = box(0.04, 0.03, FL * 0.6, mat.glow);
+  setPos(led, dx * (FW / 2 + 0.03), FH * 0.58, 0);
+  robot.add(led);
+}
+
+// Front panel
+const frontPanel = box(FW * 0.6, FH * 0.25, 0.06, mat.panel);
+setPos(frontPanel, 0, FH * 0.82, -FL / 2);
+frontPanel.castShadow = true;
+robot.add(frontPanel);
+
+// Rear panel
+const rearPanel = box(FW * 0.6, FH * 0.3, 0.06, mat.panel);
+setPos(rearPanel, 0, FH * 0.78, FL / 2);
+rearPanel.castShadow = true;
+robot.add(rearPanel);
+
+// --- HOPPER (tolva trapezoidal) ---
+{
+  const hW = 4.0, hL = 3.2, hH = 1.6;
+  const shape = new THREE.Shape();
+  const taper = 0.88;
+  shape.moveTo(-hW / 2, 0);
+  shape.lineTo(hW / 2, 0);
+  shape.lineTo(hW / 2 * taper, hH);
+  shape.lineTo(-hW / 2 * taper, hH);
+  shape.closePath();
+
+  const hopperGeo = new THREE.ExtrudeGeometry(shape, { depth: hL, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2 });
+  const hopper = new THREE.Mesh(hopperGeo, mat.hopper);
+  hopper.position.set(0, FH + BAR / 2, -hL / 2);
+  hopper.castShadow = true;
+  robot.add(hopper);
+
+  // Interior darkness
+  const inside = box(hW * taper * 0.9, 0.03, hL * 0.9, new THREE.MeshStandardMaterial({ color: 0x0a120a }));
+  setPos(inside, 0, FH + hH + BAR / 2 - 0.02, 0);
+  robot.add(inside);
+
+  // Reinforcement ribs
+  for (const rz of [-hL * 0.3, 0, hL * 0.3]) {
+    const rib = box(hW + 0.1, 0.1, 0.08, mat.metalDark);
+    setPos(rib, 0, FH + hH * 0.5, rz);
+    robot.add(rib);
+  }
+
+  // Green stripe on hopper
+  const hStripe = box(hW * 0.92, 0.08, hL + 0.1, mat.accent);
+  setPos(hStripe, 0, FH + hH * 0.65, 0);
+  robot.add(hStripe);
+}
+
+// --- CAMERA ARRAY (front underside) ---
+const camCount = 7;
+const camZone = -FL / 2 + 2.0;
+const camSpacing = (FW - 1.2) / (camCount - 1);
+const cameras = [];
+
+for (let i = 0; i < camCount; i++) {
+  const cx = -FW / 2 + 0.6 + i * camSpacing;
+  const cg = new THREE.Group();
+
+  // Housing
+  const housing = box(0.28, 0.22, 0.35, mat.camBody);
+  cg.add(housing);
+
+  // Lens barrel
+  const barrel = cyl(0.09, 0.12, 14, mat.lens);
+  setPos(barrel, 0, -0.15, 0);
+  cg.add(barrel);
+
+  // Lens glass
+  const glass = cyl(0.07, 0.02, 14, new THREE.MeshStandardMaterial({
+    color: 0x88aaff, roughness: 0, metalness: 1, transparent: true, opacity: 0.6
+  }));
+  setPos(glass, 0, -0.22, 0);
+  cg.add(glass);
+
+  // IR LED ring
+  const ledRing = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.012, 6, 16), mat.glowRed);
+  ledRing.rotation.x = Math.PI / 2;
+  setPos(ledRing, 0, -0.13, 0);
+  cg.add(ledRing);
+
+  // Mount bracket
+  const bracket = box(0.04, 0.55, 0.04, mat.metalLt);
+  setPos(bracket, 0, 0.38, 0);
+  cg.add(bracket);
+
+  cg.position.set(cx, 0.85, camZone);
+  cameras.push(cg);
+  robot.add(cg);
+}
+
+// Camera bar
+const camBar = box(FW - 0.3, 0.1, 0.45, mat.accent);
+setPos(camBar, 0, FH * 0.35, camZone);
+robot.add(camBar);
+
+// Scan beam visualization (green plane under cameras)
+const scanGeo = new THREE.PlaneGeometry(FW - 1, 1.5);
+const scanMat = new THREE.MeshStandardMaterial({
+  color: 0x44ff66, emissive: 0x22ff44, emissiveIntensity: 0.4,
+  transparent: true, opacity: 0.12, side: THREE.DoubleSide
+});
+const scanPlane = new THREE.Mesh(scanGeo, scanMat);
+scanPlane.rotation.x = Math.PI / 2;
+setPos(scanPlane, 0, 0.03, camZone);
+robot.add(scanPlane);
+
+// Scan lines on the ground
+for (let i = 0; i < 3; i++) {
+  const line = box(FW - 1.2, 0.01, 0.02, mat.glow);
+  setPos(line, 0, 0.02, camZone - 0.5 + i * 0.5);
+  robot.add(line);
+}
+
+// --- SUCTION ARM ARRAY (rear underside) ---
+const suctionCount = 5;
+const suctionZone = FL / 2 - 2.5;
+const suctionSpacing = (FW - 1.8) / (suctionCount - 1);
+const suctionArms = [];
+
+for (let i = 0; i < suctionCount; i++) {
+  const sx = -FW / 2 + 0.9 + i * suctionSpacing;
+  const ag = new THREE.Group();
+
+  // Upper rail mount
+  const mount = box(0.2, 0.15, 0.2, mat.metalDark);
+  setPos(mount, 0, FH * 0.35, 0);
+  ag.add(mount);
+
+  // Main arm (vertical telescopic look)
+  const upperArm = cyl(0.055, 1.4, 10, mat.suction);
+  setPos(upperArm, 0, FH * 0.35 - 0.8, 0);
+  ag.add(upperArm);
+
+  // Joint
+  const joint = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 10), mat.metalLt);
+  setPos(joint, 0, FH * 0.35 - 1.5, 0);
+  ag.add(joint);
+
+  // Lower arm
+  const lowerArm = cyl(0.045, 0.7, 10, mat.suction);
+  setPos(lowerArm, 0, FH * 0.35 - 1.9, 0);
+  ag.add(lowerArm);
+
+  // Suction nozzle
+  const nozzle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.14, 0.06, 0.15, 14),
+    mat.cup
+  );
+  setPos(nozzle, 0, 0.12, 0);
+  ag.add(nozzle);
+
+  // Nozzle lip ring
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.02, 6, 14), mat.cup);
+  lip.rotation.x = Math.PI / 2;
+  setPos(lip, 0, 0.05, 0);
+  ag.add(lip);
+
+  // Flexible hose to manifold
+  const pts = [];
+  for (let t = 0; t <= 10; t++) {
+    const frac = t / 10;
+    pts.push(new THREE.Vector3(
+      0.15 * Math.sin(frac * 2),
+      FH * 0.35 - 1.5 + frac * (FH * 0.65 + 1.5),
+      0.1 * Math.sin(frac * 3)
+    ));
+  }
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const hoseGeo = new THREE.TubeGeometry(curve, 16, 0.03, 8, false);
+  const hose = new THREE.Mesh(hoseGeo, mat.hose);
+  hose.castShadow = true;
+  ag.add(hose);
+
+  ag.position.set(sx, 0, suctionZone);
+  suctionArms.push(ag);
+  robot.add(ag);
+}
+
+// Suction rail
+const suctionRail = box(FW - 0.8, 0.12, 0.2, mat.metalDark);
+setPos(suctionRail, 0, FH * 0.35, suctionZone);
+robot.add(suctionRail);
+
+// Manifold pipe on top
+const manifold = cyl(0.1, FW - 1, 14, mat.hose);
+manifold.rotation.z = Math.PI / 2;
+setPos(manifold, 0, FH - 0.3, suctionZone + 0.5);
+robot.add(manifold);
+
+// --- GPS / ANTENNA MAST ---
+{
+  const mast = cyl(0.03, 1.2, 6, mat.metalLt);
+  setPos(mast, FW / 2 - 0.5, FH + 1.6 + 0.6, -FL / 2 + 1);
+  robot.add(mast);
+
+  const antenna = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), mat.panel);
+  setPos(antenna, FW / 2 - 0.5, FH + 1.6 + 1.25, -FL / 2 + 1);
+  robot.add(antenna);
+}
+
+// --- HEADLIGHTS (front) ---
+for (const dx of [-1.2, 1.2]) {
+  const lightHousing = box(0.3, 0.15, 0.1, mat.camBody);
+  setPos(lightHousing, dx, FH * 0.5, -FL / 2 - 0.05);
+  robot.add(lightHousing);
+
+  const lightLens = box(0.24, 0.1, 0.02, new THREE.MeshStandardMaterial({
+    color: 0xffffff, emissive: 0xffffcc, emissiveIntensity: 1.5,
+    transparent: true, opacity: 0.9
+  }));
+  setPos(lightLens, dx, FH * 0.5, -FL / 2 - 0.11);
+  robot.add(lightLens);
+}
+
+// --- TAIL LIGHTS (rear) ---
+for (const dx of [-1.2, 1.2]) {
+  const tail = box(0.25, 0.1, 0.02, mat.glowRed);
+  setPos(tail, dx, FH * 0.5, FL / 2 + 0.01);
+  robot.add(tail);
+}
+
+// --- DIRECTION ARROW (ground projection) ---
+{
+  const arrowShape = new THREE.Shape();
+  arrowShape.moveTo(0, 0);
+  arrowShape.lineTo(-0.7, -1.2);
+  arrowShape.lineTo(-0.25, -1.2);
+  arrowShape.lineTo(-0.25, -3);
+  arrowShape.lineTo(0.25, -3);
+  arrowShape.lineTo(0.25, -1.2);
+  arrowShape.lineTo(0.7, -1.2);
+  arrowShape.closePath();
+  const arrowMesh = new THREE.Mesh(new THREE.ShapeGeometry(arrowShape),
+    new THREE.MeshStandardMaterial({ color: 0x44ff66, emissive: 0x22ff44, emissiveIntensity: 0.6, transparent: true, opacity: 0.5 })
+  );
+  arrowMesh.rotation.x = -Math.PI / 2;
+  setPos(arrowMesh, 0, 0.03, -FL / 2 - 1.5);
+  robot.add(arrowMesh);
+}
+
+scene.add(robot);
+
+// ============================================================
+//  ANIMATION
+// ============================================================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // Suction arm bobbing
+  suctionArms.forEach((arm, i) => {
+    const phase = i * 0.8;
+    arm.children.forEach(child => {
+      if (child === arm.children[3] || child === arm.children[4] || child === arm.children[5]) {
+        // Nozzle and lower arm slight movement
+      }
+    });
+    // Bob entire arm group slightly
+    arm.position.y = Math.sin(t * 1.5 + phase) * 0.08;
+  });
+
+  // Scan plane pulse
+  scanMat.opacity = 0.08 + Math.sin(t * 3) * 0.06;
+
+  // Camera LED pulse
+  cameras.forEach((cam, i) => {
+    const ledRing = cam.children[3]; // IR ring
+    if (ledRing && ledRing.material) {
+      ledRing.material.emissiveIntensity = 1.0 + Math.sin(t * 4 + i * 0.5) * 0.5;
+    }
+  });
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// ============================================================
+//  RESIZE
+// ============================================================
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

@@ -261,10 +261,9 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        const PDF_FILE = 'Green and White Clean Typographic Agriculture Presentation.pdf';
+        const PDF_FILE = 'Green and White Clean Typographic Agriculture Presentation (1).pdf';
         const VIDEO_FILE = 'ONE-UNINTERRUPTED-4-SECOND-ultra-photore.mp4';
-        // CAMBIA ESTE LINK POR EL QUE QUIERAS:
-        const EXTERNAL_LINK = '';
+        const EXTERNAL_LINK = 'https://beliefs-meter-bristol-markets.trycloudflare.com/viewer/?ws=wss://based-canal-simplified-donated.trycloudflare.com/ws/viewer';
 
         const container = document.getElementById('slide-container');
         const navIndicator = document.getElementById('nav-indicator');
@@ -283,6 +282,7 @@
         async function loadPDF() {
             const pdf = await pdfjsLib.getDocument(PDF_FILE).promise;
             const numPages = pdf.numPages;
+            const pdfSlides = [];
 
             for (let i = 1; i <= numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -301,12 +301,25 @@
                 slideDiv.className = 'slide';
                 slideDiv.setAttribute('data-section', 'Presentacion PDF');
                 slideDiv.appendChild(canvas);
-                container.appendChild(slideDiv);
-                slides.push(slideDiv);
+                pdfSlides.push(slideDiv);
 
                 // Update loading progress
                 loading.querySelector('p').textContent = `Cargando pagina ${i} de ${numPages}...`;
             }
+
+            // Secuencia: paginas 1 a 6, video, enlace y paginas restantes.
+            pdfSlides.slice(0, 6).forEach((slide) => {
+                container.appendChild(slide);
+                slides.push(slide);
+            });
+
+            createVideoSlide();
+            createLinkSlide();
+
+            pdfSlides.slice(6).forEach((slide) => {
+                container.appendChild(slide);
+                slides.push(slide);
+            });
         }
 
         function createVideoSlide() {
@@ -332,16 +345,12 @@
             slideDiv.id = 'link-slide';
             slideDiv.setAttribute('data-section', 'Link Externo');
 
-            const fallback = document.createElement('div');
-            fallback.className = 'link-fallback';
-            const a = document.createElement('a');
-            a.href = EXTERNAL_LINK;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            a.textContent = 'Abrir enlace externo';
-            fallback.appendChild(a);
+            const iframe = document.createElement('iframe');
+            iframe.src = EXTERNAL_LINK;
+            iframe.title = 'Viewer externo';
+            iframe.allow = 'fullscreen';
+            slideDiv.appendChild(iframe);
 
-            slideDiv.appendChild(fallback);
             container.appendChild(slideDiv);
             slides.push(slideDiv);
         }
@@ -480,8 +489,6 @@
         async function init() {
             try {
                 await loadPDF();
-                createVideoSlide();
-                createLinkSlide();
 
                 if (slides.length > 0) {
                     slides[0].classList.add('active');

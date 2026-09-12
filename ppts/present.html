@@ -1,0 +1,303 @@
+x<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CbaHack — Presentación</title>
+<style>
+  :root { --accent: #3ddc84; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden;
+    font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif; color: #fff; }
+  body { cursor: none; }
+  body.ui-visible { cursor: default; }
+
+  /* ---- capa 1: demo en vivo (siempre cargada, debajo de las diapositivas) ---- */
+  #demoLayer { position: fixed; inset: 0; z-index: 1; opacity: 0; transition: opacity .18s ease; background: #000; }
+  #demoLayer.active { opacity: 1; }
+  #demoFrame { width: 100%; height: 100%; border: 0; display: block; pointer-events: none; background: #000; }
+  #demoLayer.interactive #demoFrame { pointer-events: auto; }
+
+  /* ---- capa 2: diapositivas (imagenes del PDF) ---- */
+  #slideLayer { position: fixed; inset: 0; z-index: 2; background: #000; transition: opacity .18s ease; }
+  #slideLayer.hidden { opacity: 0; pointer-events: none; }
+  #slideLayer img { position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: contain; opacity: 0; transition: opacity .12s linear;
+    image-rendering: -webkit-optimize-contrast; }
+  #slideLayer img.active { opacity: 1; }
+  /* tecla C: rellenar la pantalla recortando los bordes (para proyectores 16:10 o 4:3) */
+  body.fill #slideLayer img { object-fit: cover; }
+
+  /* ---- capa 3: overlays ---- */
+  #black { position: fixed; inset: 0; z-index: 9; background: #000; opacity: 0; pointer-events: none; transition: opacity .15s; }
+  #black.on { opacity: 1; pointer-events: auto; }
+
+  .hud { position: fixed; z-index: 10; opacity: 0; transition: opacity .3s ease; pointer-events: none; }
+  body.ui-visible .hud { opacity: 1; }
+
+  #counter { bottom: 18px; right: 22px; font-size: 13px; font-variant-numeric: tabular-nums;
+    letter-spacing: .04em; padding: 5px 11px; border-radius: 999px;
+    background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.16); backdrop-filter: blur(6px); }
+  /* la barra de progreso tambien se desvanece: la diapositiva proyectada queda limpia */
+  #progress { position: fixed; z-index: 10; left: 0; bottom: 0; height: 3px; background: var(--accent);
+    width: 0; opacity: 0; pointer-events: none;
+    transition: width .18s ease, opacity .3s ease; box-shadow: 0 0 12px rgba(61,220,132,.6); }
+  body.ui-visible #progress { opacity: 1; }
+
+  #badge { position: fixed; z-index: 11; top: 16px; left: 16px; display: none; align-items: center; gap: 9px;
+    font-size: 12px; letter-spacing: .06em; text-transform: uppercase; padding: 7px 13px; border-radius: 999px;
+    background: rgba(0,0,0,.62); border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(6px); }
+  #badge.show { display: flex; }
+  #badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d;
+    animation: pulse 1.4s infinite; }
+  @keyframes pulse { 50% { opacity: .25; } }
+  #badge .mode { color: var(--accent); font-weight: 600; }
+
+  #toast { position: fixed; z-index: 12; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(8px);
+    font-size: 13px; padding: 8px 15px; border-radius: 10px; background: rgba(20,20,20,.9);
+    border: 1px solid rgba(255,255,255,.16); opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  #help { position: fixed; z-index: 13; inset: 0; display: none; place-items: center;
+    background: rgba(0,0,0,.82); backdrop-filter: blur(3px); }
+  #help.show { display: grid; }
+  #help .card { max-width: 560px; padding: 28px 32px; border-radius: 16px;
+    background: #121413; border: 1px solid rgba(255,255,255,.12); }
+  #help h2 { margin: 0 0 16px; font-size: 17px; letter-spacing: .02em; }
+  #help table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  #help td { padding: 6px 0; vertical-align: top; }
+  #help td:first-child { width: 190px; color: var(--accent); font-family: ui-monospace, Consolas, monospace; }
+  #help .foot { margin-top: 18px; font-size: 12px; line-height: 1.5; color: #9aa39d; }
+
+  #warn { position: fixed; z-index: 12; top: 16px; right: 16px; max-width: 340px; display: none;
+    font-size: 12.5px; line-height: 1.45; padding: 10px 14px; border-radius: 10px;
+    background: rgba(60,20,20,.92); border: 1px solid rgba(255,120,120,.4); }
+  #warn.show { display: block; }
+  #warn code { color: #ffd28a; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     CONFIGURACION - editar solo este bloque
+     ============================================================ -->
+<script>
+  // URL de la demo en vivo. Se carga al abrir la presentacion y queda
+  // conectada en segundo plano, asi el cambio es instantaneo.
+  const DEMO_URL = "http://localhost:8000/viewer";
+
+  // Orden de la presentacion. Para agregar diapositivas despues de la demo:
+  //   1) poner el JPG/PNG en la carpeta slides/
+  //   2) agregar una linea  { img: "slides/slide-07.jpg" }  donde corresponda
+  // Para mover la demo, mover la linea { demo: true } de lugar.
+  const SLIDES = [
+    { img: "slides/slide-01.jpg" },
+    { img: "slides/slide-02.jpg" },
+    { img: "slides/slide-03.jpg" },
+    { img: "slides/slide-04.jpg" },
+    { img: "slides/slide-05.jpg" },
+    { img: "slides/slide-06.jpg" },
+    { demo: true },                        // <-- live demo (la web)
+    // { img: "slides/slide-07.jpg" },     // diapositivas posteriores a la demo
+    // { img: "slides/slide-08.jpg" },
+  ];
+</script>
+
+<div id="demoLayer"><iframe id="demoFrame" src="about:blank" allow="camera; microphone; autoplay; fullscreen"></iframe></div>
+<div id="slideLayer"></div>
+<div id="black"></div>
+
+<div id="badge"><span class="dot"></span><span>Live demo</span><span class="mode" id="badgeMode"></span></div>
+<div id="counter" class="hud"></div>
+<div id="progress"></div>
+<div id="toast"></div>
+<div id="warn"></div>
+
+<div id="help"><div class="card">
+  <h2>Controles</h2>
+  <table>
+    <tr><td>&rarr; &darr; Espacio PageDown</td><td>Siguiente diapositiva</td></tr>
+    <tr><td>&larr; &uarr; Retroceso PageUp</td><td>Diapositiva anterior</td></tr>
+    <tr><td>Inicio / Fin</td><td>Primera / ultima</td></tr>
+    <tr><td>1 &hellip; 9</td><td>Ir a esa diapositiva</td></tr>
+    <tr><td>F11</td><td>Pantalla completa del navegador (sin barras, nada)</td></tr>
+    <tr><td>F</td><td>Pantalla completa (lo mismo, desde la pagina)</td></tr>
+    <tr><td>C</td><td>Rellenar recortando bordes / volver a la diapositiva entera</td></tr>
+    <tr><td>B</td><td>Pantalla en negro</td></tr>
+    <tr><td>I</td><td>Interactuar con la demo (mouse dentro de la web)</td></tr>
+    <tr><td>R</td><td>Recargar la demo</td></tr>
+    <tr><td>D</td><td>Abrir la demo en otra ventana</td></tr>
+    <tr><td>H / ?</td><td>Mostrar u ocultar esta ayuda</td></tr>
+  </table>
+  <div class="foot">El control de diapositivas anda: manda flechas o PageUp/PageDown.
+  En la diapositiva de la demo las flechas siguen funcionando porque la web no toma el teclado,
+  salvo que actives el modo interactuar con <b>I</b>.</div>
+</div></div>
+
+<script>
+(function () {
+  var slideLayer = document.getElementById('slideLayer');
+  var demoLayer  = document.getElementById('demoLayer');
+  var demoFrame  = document.getElementById('demoFrame');
+  var counter    = document.getElementById('counter');
+  var progress   = document.getElementById('progress');
+  var badge      = document.getElementById('badge');
+  var badgeMode  = document.getElementById('badgeMode');
+  var blackout   = document.getElementById('black');
+  var toastEl    = document.getElementById('toast');
+  var helpEl     = document.getElementById('help');
+  var warnEl     = document.getElementById('warn');
+
+  var index = 0, interactive = false, uiTimer = null, toastTimer = null;
+
+  // --- precarga de todas las imagenes: quedan en el DOM, el cambio es instantaneo ---
+  var imgs = SLIDES.map(function (s) {
+    if (!s.img) return null;
+    var el = document.createElement('img');
+    el.src = s.img;
+    el.alt = '';
+    slideLayer.appendChild(el);
+    return el;
+  });
+
+  // --- la demo se carga de entrada y se queda conectada en segundo plano ---
+  demoFrame.src = DEMO_URL;
+
+  function render() {
+    var onDemo = !!SLIDES[index].demo;
+    imgs.forEach(function (el, i) { if (el) el.classList.toggle('active', i === index); });
+
+    slideLayer.classList.toggle('hidden', onDemo);
+    demoLayer.classList.toggle('active', onDemo);
+    badge.classList.toggle('show', onDemo);
+    if (!onDemo) setInteractive(false);
+
+    counter.textContent = (index + 1) + ' / ' + SLIDES.length + (onDemo ? '  -  demo' : '');
+    progress.style.width = ((index + 1) / SLIDES.length * 100) + '%';
+    if (history.replaceState) history.replaceState(null, '', '#' + (index + 1));
+    keepFocus();
+  }
+
+  function go(n) {
+    var next = Math.max(0, Math.min(SLIDES.length - 1, n));
+    if (blackout.classList.contains('on')) blackout.classList.remove('on');
+    if (next !== index) { index = next; render(); }
+    showUI();
+  }
+
+  function setInteractive(on) {
+    interactive = on;
+    demoLayer.classList.toggle('interactive', on);
+    badgeMode.textContent = on ? '- interactuando (I para salir)' : '';
+    if (!on) keepFocus();
+  }
+
+  // el iframe nunca se queda con el teclado: asi las flechas del control siempre llegan
+  function keepFocus() {
+    if (interactive) return;
+    if (document.activeElement && document.activeElement !== document.body) {
+      try { document.activeElement.blur(); } catch (e) {}
+    }
+    window.focus();
+  }
+  setInterval(keepFocus, 700);
+
+  function toggleBlack() { blackout.classList.toggle('on'); showUI(); }
+
+  function fullscreen() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(function () {});
+  }
+
+  // ya estamos ocupando toda la pantalla (por F11 o por la API)
+  function isFullScreen() {
+    return !!document.fullscreenElement || window.innerHeight >= screen.height - 5;
+  }
+
+  // al primer gesto pasamos a pantalla completa solos, salvo que ya hayan apretado F11
+  var autoTried = false;
+  function maybeAutoFullscreen() {
+    if (autoTried) return;
+    autoTried = true;
+    if (isFullScreen()) return;
+    document.documentElement.requestFullscreen().catch(function () {});
+  }
+
+  function toast(msg, milliseconds) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, milliseconds || 1700);
+  }
+
+  function showUI() {
+    document.body.classList.add('ui-visible');
+    clearTimeout(uiTimer);
+    uiTimer = setTimeout(function () { document.body.classList.remove('ui-visible'); }, 2200);
+  }
+
+  window.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    var k = e.key;
+
+    // F11 es del navegador: no lo tocamos para que haga la pantalla completa nativa
+    if (k === 'F11') { autoTried = true; showUI(); return; }
+    maybeAutoFullscreen();
+    var NEXT = ['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Spacebar', 'Enter', 'n', 'N'];
+    var PREV = ['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace', 'p', 'P'];
+
+    if (NEXT.indexOf(k) !== -1)      { go(index + 1); }
+    else if (PREV.indexOf(k) !== -1) { go(index - 1); }
+    else if (k === 'Home')           { go(0); }
+    else if (k === 'End')            { go(SLIDES.length - 1); }
+    else if (/^[1-9]$/.test(k))      { go(parseInt(k, 10) - 1); }
+    else if (k === 'f' || k === 'F' || k === 'F5') { fullscreen(); }
+    else if (k === 'c' || k === 'C') {
+      document.body.classList.toggle('fill');
+      toast(document.body.classList.contains('fill')
+        ? 'Rellenando la pantalla (recorta los bordes)'
+        : 'Diapositiva completa, sin recortar');
+    }
+    else if (k === 'b' || k === 'B' || k === '.')  { toggleBlack(); }
+    else if (k === 'i' || k === 'I') {
+      if (!SLIDES[index].demo) { toast('Modo interactuar: solo en la diapositiva de la demo'); }
+      else {
+        setInteractive(!interactive);
+        toast(interactive ? 'Interactuando con la demo - I para volver' : 'Teclado devuelto a la presentacion');
+      }
+    }
+    else if (k === 'r' || k === 'R') { demoFrame.src = DEMO_URL; toast('Demo recargada'); }
+    else if (k === 'd' || k === 'D') { window.open(DEMO_URL, 'demo'); toast('Demo abierta en otra ventana'); }
+    else if (k === 'h' || k === 'H' || k === '?') { helpEl.classList.toggle('show'); }
+    else if (k === 'Escape') { helpEl.classList.remove('show'); setInteractive(false); }
+    else return;
+
+    e.preventDefault();
+    showUI();
+  }, true);
+
+  // clic en la zona de diapositivas avanza (algunos controles emulan el mouse)
+  slideLayer.addEventListener('click', function () { maybeAutoFullscreen(); go(index + 1); });
+  blackout.addEventListener('click', toggleBlack);
+  helpEl.addEventListener('click', function () { helpEl.classList.remove('show'); });
+  window.addEventListener('mousemove', showUI);
+
+  // aviso si el backend de la demo no responde
+  fetch(DEMO_URL, { mode: 'no-cors', cache: 'no-store' })['catch'](function () {
+    warnEl.innerHTML = 'La demo no responde en <code>' + DEMO_URL + '</code>.<br>' +
+      'Arranca el backend con <code>.\\web\\run.ps1</code> y despues aprieta <b>R</b>.';
+    warnEl.classList.add('show');
+    setTimeout(function () { warnEl.classList.remove('show'); }, 12000);
+  });
+
+  // present.html#3 abre directo en esa diapositiva
+  var fromHash = parseInt((location.hash || '').replace('#', ''), 10);
+  if (fromHash >= 1 && fromHash <= SLIDES.length) index = fromHash - 1;
+
+  render();
+  showUI();
+  if (!isFullScreen()) toast('F11 para pantalla completa (o apreta cualquier tecla)', 4000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{
+  "source": "https://universe.roboflow.com/zhengkun-li-uga-edu/peanut_tifton_patch/dataset/4",
+  "source_version": 4,
+  "local_source_removed_after_reorganization": true,
+  "strategy": "grouped_by_capture_and_balanced_by_images_and_annotations",
+  "target_ratios": {
+    "train": 0.7,
+    "val": 0.15,
+    "test": 0.15
+  },
+  "group_pattern": "^(?P<group>.+?)_jpg\\.rf\\.[^.]+\\.(?:jpg|jpeg|png)$",
+  "splits": {
+    "train": {
+      "groups": [
+        "P1150748_JPG",
+        "P1150823_JPG",
+        "P1150827_JPG",
+        "P1150830_JPG",
+        "P1150835_JPG",
+        "P1160272_JPG",
+        "P1160427_JPG",
+        "P1160432_JPG",
+        "P1160644_JPG",
+        "P1160654_JPG",
+        "P1160655_JPG",
+        "P1160665_JPG",
+        "P1160995_JPG",
+        "P1170004_JPG"
+      ],
+      "group_count": 14,
+      "images": 412,
+      "annotations": 44643
+    },
+    "val": {
+      "groups": [
+        "P1150742_JPG",
+        "P1160675_JPG",
+        "P1170006_JPG"
+      ],
+      "group_count": 3,
+      "images": 88,
+      "annotations": 9572
+    },
+    "test": {
+      "groups": [
+        "P1160267_JPG",
+        "P1160685_JPG",
+        "P1160992_JPG"
+      ],
+      "group_count": 3,
+      "images": 88,
+      "annotations": 9601
+    }
+  },
+  "materialization": {
+    "hardlink": 588
+  }
+}

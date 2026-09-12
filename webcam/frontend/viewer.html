@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#13251b">
+    <title>Visor en tiempo real | HackCórdoba</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/viewer.js?v=2" defer></script>
+  </head>
+  <body>
+    <main class="app-shell viewer-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Pantalla de presentación</p>
+          <h1>Visor en tiempo real</h1>
+        </div>
+        <a class="text-link" href="/">Inicio</a>
+      </header>
+
+      <section class="status-strip" aria-live="polite">
+        <span id="connectionDot" class="status-dot neutral"></span>
+        <strong id="connectionStatus">Conectando con el servidor…</strong>
+        <span id="cameraStatus" class="status-detail">Cámara desconectada</span>
+      </section>
+
+      <section class="video-stage viewer-stage">
+        <img id="remoteFrame" alt="Transmisión en vivo desde el teléfono">
+        <div id="viewerPlaceholder" class="stage-placeholder">
+          <div class="signal-rings" aria-hidden="true"><span></span><span></span><span></span></div>
+          <p id="placeholderText">Esperando que se conecte la cámara…</p>
+        </div>
+        <span class="live-badge"><i></i> EN VIVO</span>
+      </section>
+
+      <section class="stats-grid" aria-label="Estadísticas del visor">
+        <div class="stat-card"><span>FPS recibidos</span><strong id="receivedFps">0.0</strong></div>
+        <div class="stat-card"><span>Frames</span><strong id="receivedFrames">0</strong></div>
+        <div class="stat-card"><span>Último frame</span><strong id="frameAge">—</strong></div>
+        <div class="stat-card"><span>Viewers</span><strong id="viewerCount">1</strong></div>
+      </section>
+
+      <p class="message info-message">
+        Modo actual: retransmisión directa. La inferencia YOLO se incorporará en
+        una etapa posterior sin cambiar las páginas del teléfono y del visor.
+      </p>
+    </main>
+  </body>
+</html>

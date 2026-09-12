@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#13251b">
+    <title>Conexión de cámara | HackCórdoba</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body class="landing-page">
+    <main class="landing-shell">
+      <p class="eyebrow">HackCórdoba · Agro</p>
+      <h1>Conexión de cámara</h1>
+      <p class="lead">
+        Prueba de transmisión directa entre el teléfono y la notebook. En esta
+        etapa los frames se muestran sin inferencia de visión artificial.
+      </p>
+
+      <section class="route-grid" aria-label="Elegir función">
+        <a class="route-card" href="/camera">
+          <span class="route-number">01</span>
+          <h2>Transmitir cámara</h2>
+          <p>Abrir en el teléfono montado sobre el robot.</p>
+          <span class="route-action">Ir a cámara →</span>
+        </a>
+        <a class="route-card" href="/viewer">
+          <span class="route-number">02</span>
+          <h2>Visor en tiempo real</h2>
+          <p>Abrir en la computadora utilizada para la presentación.</p>
+          <span class="route-action">Ir al visor →</span>
+        </a>
+      </section>
+
+      <p class="footnote">
+        La cámara del teléfono requiere una URL HTTPS. Para la prueba remota use
+        Cloudflare Tunnel según el README de <code>webcam/</code>.
+      </p>
+    </main>
+  </body>
+</html>

@@ -83,9 +83,9 @@ No se declara un preprocesamiento adicional en el archivo exportado.
 - Durante el fine-tuning se deben incluir fondos difíciles y negativos: tierra sin vainas, rastrojo, piedras, hojas, cambios de luz, oclusiones y vainas parcialmente visibles.
 - Además de mAP, precision y recall, interesa medir falsos positivos, falsos negativos y latencia/FPS en la notebook que ejecutará el backend.
 
-## Plan de implementación del entrenamiento YOLO26
+## Diseño e implementación del entrenamiento YOLO26
 
-Esta sección registra el diseño acordado para desarrollar posteriormente el pipeline. Los archivos mencionados todavía no forman parte de la implementación.
+Esta sección registra el diseño acordado y la implementación verificada del pipeline. Los scripts, archivos de dependencias y documentación mencionados a continuación forman parte de `cv/` desde el 2026-09-12.
 
 ### Configuración del experimento
 
@@ -197,6 +197,7 @@ cv/Models-Roboflow/<nombre-de-corrida>/
 |-- training.log
 |-- subset_manifest.json
 |-- environment.json
+|-- val_metrics.json
 |-- test_metrics.json
 `-- run_summary.json
 ```
@@ -207,7 +208,7 @@ El conjunto `test` no debe utilizarse para elegir hiperparámetros. Para compara
 
 ### Dependencias y ejecución en otra computadora
 
-La implementación incorporará los siguientes archivos de soporte:
+La implementación incorpora los siguientes archivos de soporte:
 
 ```text
 cv/
@@ -220,17 +221,17 @@ cv/
     `-- train_yolo26.py
 ```
 
-- `requirements-yolo26.txt` declarará versiones compatibles y verificadas de las dependencias Python.
-- `setup_training.ps1` creará un entorno virtual e instalará dependencias para CPU o CUDA mediante un parámetro explícito, por ejemplo `-Backend cpu` o `-Backend cuda`.
-- `README_entrenamiento.md` documentará comandos equivalentes para Windows y Linux, instalación, configuración y ejecución.
-- `check_training_environment.py` mostrará Python, sistema operativo, PyTorch, Ultralytics, CUDA, GPU, memoria disponible y dependencias faltantes. Si encuentra un problema, imprimirá el comando recomendado para corregirlo.
+- `requirements-yolo26.txt` declara las versiones verificadas de las dependencias Python.
+- `setup_training.ps1` crea un entorno virtual e instala dependencias para CPU o CUDA mediante un parámetro explícito, por ejemplo `-Backend Cpu` o `-Backend Cuda`.
+- `README_entrenamiento.md` documenta los comandos para Windows y Linux, la instalación, la configuración y la ejecución.
+- `check_training_environment.py` muestra Python, sistema operativo, PyTorch, Ultralytics, CUDA, GPU, memoria disponible y dependencias faltantes. Si encuentra un problema, finaliza con un código de error y una indicación para corregirlo.
 - Cada corrida guardará las versiones realmente utilizadas para que el resultado sea auditable aunque el entrenamiento se ejecute en otra máquina.
 
 La instalación de PyTorch deberá distinguir CPU de CUDA, porque sus paquetes pueden requerir índices diferentes. El instalador comprobará la presencia de una GPU NVIDIA antes de seleccionar la variante CUDA y fallará con un mensaje claro si el backend solicitado no está disponible.
 
-### Verificación prevista
+### Verificación del pipeline
 
-Antes de considerar completa la implementación se comprobará:
+La implementación comprueba:
 
 1. Conversión correcta de COCO a YOLO y mapeo exclusivo de `pod` a la clase 0.
 2. Exactitud del porcentaje solicitado y de las cantidades finales por split.
@@ -240,6 +241,25 @@ Antes de considerar completa la implementación se comprobará:
 6. Creación de `Models-Roboflow` y de todos los artefactos esperados.
 7. Ejecución de un smoke test corto antes de lanzar un entrenamiento completo.
 8. Extracción y persistencia de las métricas del mejor checkpoint.
+
+### Smoke test ejecutado
+
+El 2026-09-12 se ejecutó el pipeline completo en CPU con una muestra mínima para comprobar la integración, no para evaluar la calidad final del detector:
+
+| Parámetro | Valor efectivo |
+| --- | --- |
+| Modelo inicial | `yolo26n.pt` |
+| Dataset | 10 de 588 imágenes (`1.7006802721088436 %`) |
+| Reparto | 7 `train`, 2 `val`, 1 `test` |
+| Entrenamiento | 1 epoch, `imgsz=160`, `batch=1`, `workers=0` |
+| Dispositivo | CPU, Intel Core i5-10210U |
+| Entorno | Python 3.13.1, PyTorch 2.7.0+cpu, Ultralytics 8.4.147 |
+| Duración total | 27,104 segundos |
+| Resultado | Pipeline completado; `best.pt`, `last.pt`, métricas y resumen generados |
+
+La corrida quedó en `cv/Models-Roboflow/smoke_test_10/`. Tanto validación como test produjeron precision, recall, mAP50 y mAP50-95 iguales a 0. Este resultado es esperable con solo siete imágenes de entrenamiento, una época y una resolución de 160 píxeles; no debe utilizarse como indicador de calidad. La prueba sí confirmó la descarga y carga de YOLO26n, la conversión COCO a YOLO, la selección porcentual, el entrenamiento, la evaluación separada sobre `val` y `test`, y la persistencia de artefactos.
+
+El subset de prueba contiene 549 anotaciones en `train`, 467 en `val` y 258 en `test`. La conversión recortó dos bounding boxes que excedían levemente los límites de sus imágenes y registró esta corrección en `subset_manifest.json`.
 
 Referencias técnicas previstas:
 

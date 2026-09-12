@@ -1,0 +1,35 @@
+{
+  "name": "cba-hack-harvest-cinematic",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "audio:generate": "node scripts/generate-audio.mjs",
+    "studio": "remotion studio --no-open",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --max-warnings=0",
+    "check": "npm run typecheck && npm run lint",
+    "render": "remotion render PeanutHarvestIntro out/peanut-harvest-intro.mp4 --codec=h264 --pixel-format=yuv420p"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.6",
+    "@react-three/fiber": "^9.4.0",
+    "@remotion/media": "^4.0.410",
+    "@remotion/three": "^4.0.410",
+    "remotion": "^4.0.410",
+    "three": "^0.180.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@remotion/cli": "^4.0.410",
+    "@types/react": "^19.2.2",
+    "@types/node": "^24.10.0",
+    "@types/three": "^0.180.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "typescript-eslint": "^8.46.2",
+    "typescript": "^5.9.3"
+  }
+}

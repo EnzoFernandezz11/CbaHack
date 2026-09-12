@@ -1,0 +1,15 @@
+export const PALETTE = {
+  skyTop: '#263b58',
+  skyHorizon: '#ef8f55',
+  sun: '#ffd39a',
+  soil: '#70432b',
+  soilDark: '#3a251d',
+  straw: '#a67a46',
+  leaf: '#596535',
+  white: '#deded8',
+  graphite: '#20252a',
+  metal: '#777d80',
+  green: '#70e04a',
+  rubber: '#17191b',
+  glass: '#223b46',
+} as const;

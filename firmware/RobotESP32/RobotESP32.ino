@@ -120,8 +120,12 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
       }
 
       function stop() {
+        const releasedDir = active === null ? null : active.dataset.dir;
         generation++;
         clearActive();
+        if (releasedDir !== null) {
+          console.log('[RobotESP32] Botón liberado:', releasedDir, '-> STOP');
+        }
         // Solo STOP usa keepalive para tener una oportunidad extra al cerrar la página.
         send('S', true);
       }
@@ -145,6 +149,7 @@ static const char INDEX_HTML[] PROGMEM = R"rawliteral(
         active = button;
         active.classList.add('pressed');
         const dir = active.dataset.dir;
+        console.log('[RobotESP32] Botón presionado:', dir);
         // Espera cada respuesta antes de renovar: nunca acumula comandos viejos.
         renew(dir, token);
       }
@@ -325,10 +330,12 @@ void handleCommand() {
   if (command != 'F' && command != 'B' && command != 'L' &&
       command != 'R' && command != 'S') {
     requestMotion(MOTION_STOP);
+    Serial.printf("[WEB] Comando invalido: %c\n", command);
     sendText(400, "Comando invalido");
     return;
   }
 
+  Serial.printf("[WEB] Comando recibido: %c\n", command);
   requestMotion(requested);
   sendText(200, "OK");
 }
